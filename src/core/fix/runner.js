@@ -33,7 +33,8 @@ const AI_ALLOWED_PROGRAMS = new Set([
 
 /** Commands that can remove or rewrite things get an extra warning in the UI. */
 const DESTRUCTIVE = [/^(apt-get|dnf|zypper)$/, /^pacman$/];
-const DESTRUCTIVE_ARGS = /\b(remove|purge|erase|autoremove|-R\w*)\b/;
+// A removal word or a pacman -R flag (-R, -Rns, -Rdd...) as a whole argument.
+const DESTRUCTIVE_ARGS = /(^|\s)(remove|purge|erase|autoremove|-R[A-Za-z]*)(?=\s|$)/;
 
 /**
  * @param {any} step

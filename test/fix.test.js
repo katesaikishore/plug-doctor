@@ -72,3 +72,15 @@ test('install steps adapt to the package manager, or become manual', () => {
   assert.equal(installStep({ dnf: ['hplip'] }, apt).kind, 'manual');
   assert.equal(installStep({ apt: ['hplip'] }, null).kind, 'manual');
 });
+
+test('the assistant may not remove software with any package manager', () => {
+  const ai = (cmd, args) => validateStep({ kind: 'command', cmd, args }, { source: 'ai' });
+  assert.equal(ai('apt-get', ['remove', 'cups']).ok, false);
+  assert.equal(ai('apt-get', ['purge', 'cups']).ok, false);
+  assert.equal(ai('dnf', ['remove', 'cups']).ok, false);
+  assert.equal(ai('zypper', ['remove', 'cups']).ok, false);
+  assert.equal(ai('pacman', ['-R', 'cups']).ok, false);
+  assert.equal(ai('pacman', ['-Rns', 'cups']).ok, false);
+  assert.equal(ai('pacman', ['-S', 'cups']).ok, true, 'installing is allowed');
+  assert.equal(ai('apt-get', ['install', '-y', 'hplip']).ok, true, 'installing is allowed');
+});
