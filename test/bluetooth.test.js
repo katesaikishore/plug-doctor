@@ -259,18 +259,25 @@ test('linux: BlueZ not installed', async () => {
   assert.deepEqual(r.plans[0].steps[0].args, ['install', '-y', 'bluez']);
 });
 
-test('linux: no Bluetooth at all is explained', async () => {
+test('linux: a computer with no Bluetooth adapter shows nothing, rather than a fix to install BlueZ', async () => {
   const run = linuxRun([
     ['rfkill list bluetooth', ''],
     ['bluetoothctl show', { ok: false, code: 1, stdout: 'No default controller available\n' }],
   ]);
-  const devices = await bt.source.list({ platform: 'linux', run });
-  assert.equal(devices[0].details.present, false);
-  const r = await check(devices[0], 'linux', run);
-  assert.equal(r.status, 'broken');
-  assert.match(r.headline, /could not find Bluetooth/);
-  assert.match(r.checks.find((c) => c.id === 'controller').detail, /desktop/);
-  assert.ok(r.plans.some((p) => p.id === 'usb-adapter'));
+  assert.deepEqual(await bt.source.list({ platform: 'linux', run, bluetoothSysfs: '/nonexistent' }), []);
+});
+
+test('linux: the kernel sees an adapter but no tools are installed', async () => {
+  const fs = require('node:fs');
+  const os = require('node:os');
+  const path = require('node:path');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'pd-bt-'));
+  fs.mkdirSync(path.join(root, 'hci0'));
+  const run = fakeRun([['systemctl is-active bluetooth', { ok: false, code: 3, stdout: 'inactive\n' }]]);
+  const [controller] = await bt.source.list({ platform: 'linux', run, bluetoothSysfs: root });
+  assert.equal(controller.details.present, true);
+  const r = await check(controller, 'linux', run);
+  assert.ok(r.plans.some((p) => p.id === 'install-bluez'));
 });
 
 test('linux: at most MAX_INFO info calls; old BlueZ without the Paired filter', async () => {

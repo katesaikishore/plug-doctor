@@ -1,5 +1,7 @@
 'use strict';
 
+const fs = require('node:fs/promises');
+
 /**
  * Bluetooth source: one device for this computer's Bluetooth controller
  * (radio), plus one per paired or connected Bluetooth device.
@@ -358,7 +360,16 @@ function parseRfkill(text) {
   };
 }
 
-async function listLinux({ run }) {
+/** Bluetooth adapters the kernel knows about (hci0, hci1...), whatever user-space tools are installed. */
+async function kernelAdapters(root) {
+  try {
+    return (await fs.readdir(root)).filter((n) => /^hci\d+$/.test(n));
+  } catch {
+    return [];
+  }
+}
+
+async function listLinux({ run, bluetoothSysfs = '/sys/class/bluetooth' }) {
   const raw = {};
   const toolsMissing = [];
 
@@ -419,8 +430,14 @@ async function listLinux({ run }) {
   const present = show.present === true || rfkill.entries.length > 0 ? true
     : show.present === false && !rf.missing ? false
     : null;
+  // No adapter anywhere (no rfkill switch, no hci device, nothing paired):
+  // this computer has no Bluetooth, so there is nothing to show or fix.
+  // Without this, a desktop or server would be told to install BlueZ.
+  const hci = await kernelAdapters(bluetoothSysfs);
+  raw.kernelAdapters = hci;
+  if (present !== true && hci.length === 0 && remotes.length === 0) return [];
   const controller = {
-    present,
+    present: present ?? (hci.length > 0 ? true : null),
     powered: blocked ? false : show.powered ?? null,
     address: show.address ?? null,
     name: show.name ?? null,
@@ -533,7 +550,7 @@ const source = {
     const platform = ctx.platform ?? process.platform;
     const run = ctx.run ?? require('../exec').run;
     if (platform === 'darwin') return listMac({ run });
-    if (platform === 'linux') return listLinux({ run });
+    if (platform === 'linux') return listLinux({ run, bluetoothSysfs: ctx.bluetoothSysfs });
     if (platform === 'win32') return listWindows({ run });
     return [];
   },

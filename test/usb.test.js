@@ -12,7 +12,9 @@ const { categoriesFor } = require('../src/core/usb/classes');
 const { UsbWatcher } = require('../src/core/usb/watcher');
 const { fixture, makeSysfs, fakeRun } = require('./helpers');
 
-test('linux: reads devices, interfaces, drivers and device nodes from sysfs', async () => {
+// Linux sysfs names interfaces like "1-1:1.0"; Windows cannot create a folder
+// with a colon, so this Linux-only reader is tested on Linux and macOS.
+test('linux: reads devices, interfaces, drivers and device nodes from sysfs', { skip: process.platform === 'win32' && 'sysfs paths contain ":"' }, async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pd-sysfs-'));
   const sysfsRoot = makeSysfs(tmp, {
     usb1: { idVendor: '1d6b', idProduct: '0002', bDeviceClass: '09' },
