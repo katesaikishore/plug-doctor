@@ -294,6 +294,13 @@ const TRUST_STEP = {
   explain: 'Unlock your iPhone or iPad. When it asks "Trust This Computer?", tap Trust and enter your passcode.',
 };
 
+// The prompt sometimes never appears. Resetting location and privacy settings brings it back, and removes no photos or apps.
+const TRUST_RESET_STEP = {
+  kind: 'manual',
+  title: 'If the prompt never appears, reset location and privacy',
+  explain: 'On the iPhone or iPad, go to Settings > General > Transfer or Reset iPhone > Reset > Reset Location & Privacy (on older versions, Settings > General > Reset). Then unplug the cable, plug it back in, unlock the phone and check again.',
+};
+
 async function macIos(device, ctx, kind) {
   return {
     status: 'ok',
@@ -305,7 +312,7 @@ async function macIos(device, ctx, kind) {
         title: `Let the ${kind} trust this Mac`,
         why: 'iPhones and iPads hide their contents until you approve the computer on the device itself.',
         confidence: 0.5,
-        steps: [TRUST_STEP, { kind: 'manual', title: 'Open Finder', explain: `Click the ${kind} in the Finder sidebar under Locations.` }],
+        steps: [TRUST_STEP, TRUST_RESET_STEP, { kind: 'manual', title: 'Open Finder', explain: `Click the ${kind} in the Finder sidebar under Locations.` }],
       }),
     ],
     facts: { phone: 'ios', kind },
@@ -381,7 +388,7 @@ async function linuxIos(device, ctx, kind) {
       title: `Let the ${kind} trust this computer`,
       why: 'iPhones and iPads hide their contents until you approve the computer on the device itself.',
       confidence: 0.8,
-      steps: [TRUST_STEP],
+      steps: [TRUST_STEP, TRUST_RESET_STEP],
     }),
   );
   return { status: 'needs-fix', headline: `Unlock the ${kind} and tap "Trust" to finish connecting.`, checks, plans, facts };
@@ -404,6 +411,7 @@ async function windowsIos(device, ctx, kind) {
       steps: [
         { kind: 'open-url', title: 'Open Apple Devices in the Microsoft Store', explain: 'Click Get or Install.', url: APPLE_DEVICES_URL },
         TRUST_STEP,
+        TRUST_RESET_STEP,
       ],
     });
 

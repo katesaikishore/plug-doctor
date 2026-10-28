@@ -181,6 +181,11 @@ test('iPhone on Linux that has not trusted the computer', async () => {
   assert.equal(r.status, 'needs-fix');
   assert.equal(r.plans[0].id, 'trust');
   assert.equal(r.plans[0].steps[0].kind, 'manual');
+  // When the prompt never shows up, the person can reset location and privacy, which removes no photos or apps.
+  const reset = r.plans[0].steps.find((s) => /reset location and privacy/i.test(s.title));
+  assert.ok(reset, 'the reset step is offered');
+  assert.equal(reset.kind, 'manual');
+  assert.match(reset.explain, /Reset Location & Privacy/);
 });
 
 test('iPhone on Linux, paired: ready', async () => {
