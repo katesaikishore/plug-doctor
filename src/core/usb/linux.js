@@ -97,6 +97,8 @@ async function listDevices(opts = {}) {
       class: hex2(await readAttr(dir, 'bInterfaceClass')),
       subclass: hex2(await readAttr(dir, 'bInterfaceSubClass')),
       protocol: hex2(await readAttr(dir, 'bInterfaceProtocol')),
+      // The interface string, when the device has one ("MTP", "ADB Interface").
+      name: await readAttr(dir, 'interface'),
       driver,
       nodes,
     });

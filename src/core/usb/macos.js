@@ -103,6 +103,7 @@ function devicesFromIoreg(devicesText, interfacesText = '') {
         class: hex2(i.props.bInterfaceClass),
         subclass: hex2(i.props.bInterfaceSubClass),
         protocol: hex2(i.props.bInterfaceProtocol),
+        name: i.props['USB Interface Name'] ?? i.props.kUSBString ?? null,
         driver: i.driver ?? null,
         nodes: i.nodes ?? [],
       })),

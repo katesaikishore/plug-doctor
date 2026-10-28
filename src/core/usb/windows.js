@@ -87,6 +87,8 @@ function devicesFromPnp(jsonText) {
     const interfaces = kids.map((c) => ({
       number: c.mi,
       ...(classFromCompatible(c.row.CompatibleID) ?? { class: null, subclass: null, protocol: null }),
+      name: c.row.FriendlyName ?? null,
+      windowsClass: c.row.Class ?? null,
       driver: c.row.Service || null,
       status: c.row.Status,
       problem: c.row.Problem || 0,
