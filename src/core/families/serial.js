@@ -23,8 +23,10 @@ async function linuxSerial(device, ctx) {
     checks.push(check('port', 'Serial port created', 'fail', 'No /dev/ttyUSB* or /dev/ttyACM* appeared for this device.'));
     // Ubuntu 22.04+ ships brltty, whose udev rule grabs CH340/CP210x/FTDI
     // adapters because some braille displays reuse those chips.
-    const brltty = await run('systemctl', ['is-active', 'brltty-udev.service']);
-    const brlttyInstalled = !brltty.missing && /^(active|inactive|activating)/.test(brltty.stdout.trim());
+    // "is-active" says "inactive" for a service that is installed but idle, and for one that is not installed at all.
+    // The unit file list tells them apart. A masked unit is already switched off.
+    const brltty = await run('systemctl', ['list-unit-files', 'brltty-udev.service', '--no-legend']);
+    const brlttyInstalled = !brltty.missing && /brltty-udev\.service\s+(enabled|static|disabled|indirect|generated|alias|linked)/.test(brltty.stdout);
     if (brlttyInstalled) {
       checks.push(check('brltty', 'Port not taken by a braille-display service', 'fail', 'brltty is installed and claims USB serial chips like this one, so the port disappears right after you plug it in.'));
       plans.push(

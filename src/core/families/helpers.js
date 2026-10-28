@@ -14,28 +14,32 @@ const check = (id, label, status, detail = '') => ({ id, label, status, detail }
  */
 const plan = ({ id, title, why, confidence, steps, auto = false }) => ({ id, title, why, confidence, steps, auto, source: 'builtin' });
 
-/** Plain text test page written once to the temp folder. */
+let testPage = null;
+
+/** Plain text test page, written once per run into a folder only this user can open. */
 function testPagePath() {
-  const file = path.join(os.tmpdir(), 'plug-doctor-test-page.txt');
-  if (!fs.existsSync(file)) {
-    fs.writeFileSync(
-      file,
-      [
-        'Plug Doctor test page',
-        '=====================',
-        '',
-        'If you can read this, your printer works.',
-        '',
-        `Printed: ${new Date().toISOString()}`,
-        '',
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789',
-        '',
-        'Plug Doctor is free and open source. If it helped you, consider',
-        'sharing your printer recipe so it helps the next person too.',
-      ].join('\n'),
-    );
-  }
-  return file;
+  if (testPage) return testPage;
+  // A fixed name in the shared temp folder could be a link someone else planted, so use a fresh private folder.
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'plug-doctor-'));
+  testPage = path.join(dir, 'test-page.txt');
+  fs.writeFileSync(
+    testPage,
+    [
+      'Plug Doctor test page',
+      '=====================',
+      '',
+      'If you can read this, your printer works.',
+      '',
+      `Printed: ${new Date().toISOString()}`,
+      '',
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789',
+      '',
+      'Plug Doctor is free and open source. If it helped you, consider',
+      'sharing your printer recipe so it helps the next person too.',
+    ].join('\n'),
+    { mode: 0o600 },
+  );
+  return testPage;
 }
 
 module.exports = { check, plan, testPagePath };

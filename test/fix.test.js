@@ -83,4 +83,19 @@ test('the assistant may not remove software with any package manager', () => {
   assert.equal(ai('pacman', ['-Rns', 'cups']).ok, false);
   assert.equal(ai('pacman', ['-S', 'cups']).ok, true, 'installing is allowed');
   assert.equal(ai('apt-get', ['install', '-y', 'hplip']).ok, true, 'installing is allowed');
+  assert.equal(ai('brew', ['uninstall', 'cups']).ok, false);
+  assert.equal(ai('brew', ['install', 'hplip']).ok, true);
+  assert.equal(ai('zypper', ['rm', 'cups']).ok, false);
+  assert.equal(ai('apt-get', ['--allow-remove-essential', 'install', 'cups']).ok, false);
+});
+
+test('the assistant may only use its own program arguments', () => {
+  const ai = (cmd, args) => validateStep({ kind: 'command', cmd, args }, { source: 'ai' });
+  assert.equal(ai('lpadmin', ['-x', 'HP_LaserJet_1020']).ok, false, 'deleting a print queue');
+  assert.equal(ai('lpadmin', ['-p', 'HP_LaserJet_1020', '-E', '-v', 'usb://x', '-m', 'drv']).ok, true);
+  assert.equal(ai('usermod', ['-aG', 'sudo', 'kate']).ok, false, 'not a group the fixes need');
+  assert.equal(ai('usermod', ['-aG', 'dialout', 'kate']).ok, true);
+  assert.equal(ai('pnputil', ['/delete-driver', 'oem1.inf']).ok, false);
+  assert.equal(ai('pnputil', ['/scan-devices']).ok, true);
+  assert.equal(ai('udevadm', ['control', '--reload-rules']).ok, true);
 });

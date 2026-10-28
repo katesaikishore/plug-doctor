@@ -36,10 +36,10 @@ A recipe teaches Plug Doctor how to make one device, or one family of devices, w
 | Field | Meaning |
 | --- | --- |
 | `match.usb` | Exact `vendor:product` IDs in lowercase hex. Find them in Plug Doctor's *Under the hood* tab, with `lsusb` on Linux, or in System Information on macOS. Best match. |
-| `match.models` | For printers, the `MDL:` name from the IEEE 1284 ID. |
+| `match.models` | Reserved: not matched yet. For now, match printers with `match.usb`. |
 | `match.vendors` | Vendor-wide advice. Used only when no model-specific recipe matches. |
 | `category` | `printer`, `serial`, `storage`, ... The recipe is only applied to devices diagnosed as this. |
-| `confidence` | 0 to 1. Recipes at 0.7 or above can run automatically when *Fix automatically* is on. Default 0.95. |
+| `confidence` | 0 to 1. Recipes at 0.7 or above can run on their own only for a USB device you plug in, only when every step is a safe command, and only when *Fix automatically* is on. Default 0.95. |
 | `packages` | Installed with the system package manager. |
 | `ppd` / `ppdMatch` | Printers: the driver to use (`lpinfo -m` lists names), or a regex for its make-and-model. Leave both out if the package install is enough: Plug Doctor then finds the exact driver itself on the next check. |
 | `steps` | Extra steps. `kind` is `manual` (the person does it), `open-url` (with `"url": "https://..."`) or `command` (`cmd`, `args`, `admin`). Commands must use a program on the allow-list in `src/core/fix/runner.js`. |

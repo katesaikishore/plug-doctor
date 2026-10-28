@@ -1,6 +1,6 @@
-Controller 00:1A:7D:DA:71:13 (public)
-	Name: thinkpad
-	Alias: thinkpad
+Controller 00:11:22:33:44:55 (public)
+	Name: test-laptop
+	Alias: test-laptop
 	Class: 0x006c010c
 	Powered: no
 	PowerState: off-blocked

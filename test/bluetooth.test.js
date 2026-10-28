@@ -146,7 +146,7 @@ function linuxRun(over = []) {
 }
 
 test('linux parsers', () => {
-  assert.deepEqual(bt.parseBluetoothctlShow(fixture('bluetooth-linux-show.txt')), { present: true, address: '00:1A:7D:DA:71:13', name: 'thinkpad', powered: true, powerState: 'on' });
+  assert.deepEqual(bt.parseBluetoothctlShow(fixture('bluetooth-linux-show.txt')), { present: true, address: '00:11:22:33:44:55', name: 'test-laptop', powered: true, powerState: 'on' });
   assert.equal(bt.parseBluetoothctlShow('No default controller available\n').present, false);
   assert.equal(bt.parseBluetoothctlShow('').present, null);
   const info = bt.parseBluetoothctlInfo(fixture('bluetooth-linux-info-headphones.txt'));
@@ -169,7 +169,7 @@ test('linux: controller and paired devices; strangers nearby are left out', asyn
   const devices = await bt.source.list({ platform: 'linux', run });
   assert.deepEqual(devices.map((d) => d.id), ['bluetooth:controller', 'bluetooth:AC:90:85:4D:5E:6F', 'bluetooth:C8:3F:26:11:22:33']);
   const [ctl, phones, mouse] = devices;
-  assert.deepEqual([ctl.details.powered, ctl.details.serviceActive, ctl.details.softBlocked, ctl.details.address], [true, true, false, '00:1A:7D:DA:71:13']);
+  assert.deepEqual([ctl.details.powered, ctl.details.serviceActive, ctl.details.softBlocked, ctl.details.address], [true, true, false, '00:11:22:33:44:55']);
   assert.deepEqual([phones.details.kind, phones.details.connected, phones.details.battery], ['headset', true, { main: 70 }]);
   assert.deepEqual([mouse.details.kind, mouse.details.connected, mouse.details.trusted, mouse.details.battery], ['mouse', false, false, { main: 10 }]);
   assert.equal(mouse.details.vendorId, '046d');

@@ -6,7 +6,7 @@ Thank you! Plug Doctor exists to save people from fighting their computers, and 
 
 - **Add a device recipe.** See [docs/ADDING_A_DEVICE.md](docs/ADDING_A_DEVICE.md). It is the most useful contribution and needs no JavaScript.
 - **Report a device that does not work.** Open *Under the hood* and click **Ask the community on GitHub**.
-- **Add checks for a new kind of device.** Add a module next to `src/core/diagnose/printer.js` and register it in `src/core/diagnose/index.js`.
+- **Add checks for a new kind of device.** Add a family file in `src/core/families/` and register it in `src/core/families/index.js`. [docs/FAMILIES.md](docs/FAMILIES.md) explains how.
 - **Improve a platform.** Windows and macOS have the most room to grow.
 - **Translate.** Not wired up yet. If you want to lead it, open an issue.
 

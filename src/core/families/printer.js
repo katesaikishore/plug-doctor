@@ -189,7 +189,10 @@ async function diagnoseCups(device, ctx) {
   });
   facts.candidates = candidates.map(({ recipe, ...c }) => c);
 
-  const queue = cups.queueNameFor(deviceId?.model ?? cupsDevice.makeAndModel ?? device.productName);
+  // Never reuse a queue name that another printer already has: lpadmin would overwrite it.
+  const base = cups.queueNameFor(deviceId?.model ?? cupsDevice.makeAndModel ?? device.productName);
+  let queue = base;
+  for (let n = 2; queues.some((q) => q.queue === queue); n++) queue = `${base}_${n}`;
   for (const candidate of candidates) {
     if (candidate.id === 'hostbased' || candidate.id === 'unknown') continue;
     if (candidate.id !== 'ipp-usb' && candidate.id !== 'recipe' && !candidate.model) continue;
@@ -224,7 +227,9 @@ async function diagnoseCups(device, ctx) {
 async function diagnoseWindows(device) {
   const checks = [];
   const plans = [];
-  const name = (device.productName || 'USB Printer').replace(/'/g, '');
+  // The name comes from the device, so keep only plain characters: nothing
+  // that could end a PowerShell string.
+  const name = (device.productName || 'USB Printer').replace(/[^A-Za-z0-9 ._()-]/g, '').trim().slice(0, 60) || 'USB Printer';
   if (!device.problem) {
     checks.push(check('driver', 'Windows has a driver', 'pass', device.driver.names.join(', ')));
     return { status: 'ok', headline: 'Windows has installed this printer.', checks, plans, facts: {} };

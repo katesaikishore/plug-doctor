@@ -32,9 +32,45 @@ const AI_ALLOWED_PROGRAMS = new Set([
 ]);
 
 /** Commands that can remove or rewrite things get an extra warning in the UI. */
-const DESTRUCTIVE = [/^(apt-get|dnf|zypper)$/, /^pacman$/];
+const DESTRUCTIVE = [/^(apt-get|dnf|zypper|brew)$/, /^pacman$/];
 // A removal word or a pacman -R flag (-R, -Rns, -Rdd...) as a whole argument.
-const DESTRUCTIVE_ARGS = /(^|\s)(remove|purge|erase|autoremove|-R[A-Za-z]*)(?=\s|$)/;
+const DESTRUCTIVE_ARGS = /(^|\s)(remove|purge|erase|autoremove|uninstall|cleanup|rm|-R[A-Za-z]*)(?=\s|$)/;
+
+/** What the assistant may ask a package manager to do: install or update, never remove. */
+const AI_PACKAGE_VERBS = new Set(['install', 'in', 'update', 'upgrade', 'refresh']);
+/** Groups the assistant may add a user to, for camera, serial and print access. */
+const AI_GROUPS = new Set(['dialout', 'video', 'plugdev', 'lp', 'lpadmin', 'bluetooth', 'audio', 'input', 'scanner', 'tty']);
+
+/**
+ * Checks the arguments of a command the assistant proposes. The program name
+ * alone is not enough: `apt-get remove` and `lpadmin -x` are on the list too.
+ */
+function aiArgsAllowed(cmd, args) {
+  const verb = args.find((a) => !a.startsWith('-'));
+  switch (cmd) {
+    case 'apt-get':
+    case 'dnf':
+    case 'zypper':
+    case 'brew':
+      return AI_PACKAGE_VERBS.has(verb) && !args.some((a) => /remove|purge|erase|uninstall|cleanup/i.test(a));
+    case 'pacman':
+      return args.some((a) => /^-S[yu]*$/.test(a)) && !args.some((a) => /^-[A-Za-z]*R|^--remove/.test(a));
+    case 'usermod':
+      return args.length === 3 && args[0] === '-aG' && AI_GROUPS.has(args[1]);
+    case 'modprobe':
+      return args.length === 1 && /^[a-z0-9_]+$/.test(args[0]);
+    case 'udevadm':
+      return args[0] === 'trigger' || (args.length === 2 && args[0] === 'control' && args[1] === '--reload-rules');
+    case 'pnputil':
+      return args.length === 1 && args[0] === '/scan-devices';
+    case 'lpadmin':
+    case 'lpoptions':
+      // -x deletes a print queue or an option.
+      return !args.includes('-x');
+    default:
+      return true;
+  }
+}
 
 /**
  * @param {any} step
@@ -51,6 +87,9 @@ function validateStep(step, opts = {}) {
   }
   if (opts.source === 'ai' && isDestructive(step)) {
     return { ok: false, reason: 'The assistant may not remove software.' };
+  }
+  if (opts.source === 'ai' && !aiArgsAllowed(step.cmd, step.args)) {
+    return { ok: false, reason: `The assistant may not run "${step.cmd} ${step.args.join(' ')}".` };
   }
   return { ok: true };
 }
@@ -74,7 +113,8 @@ function describe(step) {
  * @param {typeof defaultRun} [opts.run]
  * @param {(event: { type: string, index: number, step: any, result?: any }) => void} [opts.onProgress]
  * @param {(step: any, index: number) => Promise<boolean>} [opts.onManual]  resolve true when the person has done it
- * @returns {Promise<{ ok: boolean, results: any[], stoppedAt: number|null }>}
+ * @param {() => boolean} [opts.shouldStop]  checked before each step; a command already running finishes
+ * @returns {Promise<{ ok: boolean, results: any[], stoppedAt: number|null, cancelled?: boolean }>}
  */
 async function runPlan(plan, opts = {}) {
   const platform = opts.platform ?? process.platform;
@@ -83,6 +123,7 @@ async function runPlan(plan, opts = {}) {
   const results = [];
 
   for (let index = 0; index < plan.steps.length; index++) {
+    if (opts.shouldStop?.()) return { ok: false, results, stoppedAt: index, cancelled: true };
     const step = plan.steps[index];
     const check = validateStep(step, { source: plan.source });
     if (!check.ok) {

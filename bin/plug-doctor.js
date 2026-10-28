@@ -82,7 +82,7 @@ async function main(argv) {
   const [cmd = 'list', target, extra] = argv.filter((a) => !a.startsWith('--'));
   if (cmd === 'list') {
     const devices = await listDevices();
-    if (devices.length === 0) console.log('No devices found. Plug something in, or try: plug-doctor list --demo');
+    if (devices.length === 0) console.log('No devices found. Plug something in, or try the simulated Mac with: npm run cli -- list --demo');
     for (const d of devices) console.log(label(d));
     return 0;
   }
@@ -93,6 +93,7 @@ async function main(argv) {
     return 0;
   }
   if (cmd === 'report') {
+    if (!target) return console.error('Name a device, for example: plug-doctor report brother'), 1;
     const [d] = await pick(target);
     if (!d) return console.error('No matching device.'), 1;
     const r = await diagnose(d);
@@ -101,6 +102,7 @@ async function main(argv) {
     return 0;
   }
   if (cmd === 'fix') {
+    if (!target) return console.error('Name a device, for example: plug-doctor fix brother'), 1;
     const [d] = await pick(target);
     if (!d) return console.error('No matching device.'), 1;
     const r = await diagnose(d);

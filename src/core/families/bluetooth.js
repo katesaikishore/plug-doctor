@@ -238,8 +238,9 @@ async function diagnoseController(device, ctx) {
 
   if (platform === 'win32' && device.problem) {
     checks.push(check('radio', 'Bluetooth adapter working', 'fail', `Windows reports a problem with the Bluetooth adapter: ${device.problem.message}`));
-    if (device.problem.code === 22 && d.instanceId) {
-      const id = d.instanceId.replace(/'/g, "''");
+    // Only a plain Windows device ID is ever passed to PowerShell.
+    if (device.problem.code === 22 && d.instanceId && /^[A-Za-z0-9\\&_.-]+$/.test(d.instanceId)) {
+      const id = d.instanceId;
       plans.push(
         plan({
           id: 'windows-enable-radio',

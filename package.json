@@ -2,7 +2,7 @@
   "name": "plug-doctor",
   "productName": "Plug Doctor",
   "version": "0.1.0",
-  "description": "Plug in any USB device and it just works. Detects, diagnoses and fixes USB devices, with an optional AI troubleshooting assistant.",
+  "description": "Tells you what you plugged in, whether your computer can use it, and how to make it work. Free and open source, with an optional AI assistant.",
   "main": "src/main/main.js",
   "bin": {
     "plug-doctor": "bin/plug-doctor.js"
@@ -35,7 +35,7 @@
   "homepage": "https://github.com/katesaikishore/plug-doctor",
   "bugs": "https://github.com/katesaikishore/plug-doctor/issues",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.12"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.133.0"

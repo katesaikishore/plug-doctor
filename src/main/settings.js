@@ -46,8 +46,10 @@ function save(next) {
 
 /** Settings as the renderer may see them: never the key itself. */
 function publicView(s = load()) {
-  const { apiKeyEncrypted, ...rest } = s;
-  return { ...rest, hasApiKey: Boolean(apiKeyEncrypted) || Boolean(process.env.ANTHROPIC_API_KEY) };
+  const rest = { ...s };
+  delete rest.apiKeyEncrypted;
+  // Report a key only when the assistant can actually read it back.
+  return { ...rest, hasApiKey: Boolean(apiKey()) };
 }
 
 function update(patch) {

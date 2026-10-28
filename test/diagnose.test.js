@@ -133,11 +133,17 @@ const ch340 = (over = {}) =>
   );
 
 test('CH340 stolen by brltty on Ubuntu', async () => {
-  const run = fakeRun([['systemctl is-active brltty-udev.service', 'active\n']]);
+  const run = fakeRun([['systemctl list-unit-files brltty-udev.service --no-legend', 'brltty-udev.service static      -\n']]);
   const r = await diagnose(ch340(), { platform: 'linux', run, manager: apt });
   assert.equal(r.category, 'serial');
   assert.equal(r.plans[0].id, 'disable-brltty-udev');
   assert.match(r.recipes[0].notes, /brltty/);
+});
+
+test('CH340 with brltty installed but masked is not blamed', async () => {
+  const run = fakeRun([['systemctl list-unit-files brltty-udev.service --no-legend', 'brltty-udev.service masked      -\n']]);
+  const r = await diagnose(ch340(), { platform: 'linux', run, manager: apt });
+  assert.ok(!r.plans.some((p) => p.id === 'disable-brltty-udev'));
 });
 
 test('CH340 with a port the user cannot open', async () => {

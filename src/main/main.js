@@ -5,6 +5,7 @@ const { app, BrowserWindow, ipcMain, shell, clipboard, Notification, Tray, Menu,
 const { DeviceWatcher } = require('../core/usb/watcher');
 const { createInventory } = require('../core/sources');
 const { diagnose } = require('../core/diagnose');
+const { verdict } = require('../core/support');
 const { runPlan } = require('../core/fix/runner');
 const report = require('../core/report');
 const settings = require('./settings');
@@ -17,6 +18,7 @@ const ICON = path.join(__dirname, '..', '..', 'assets', 'icon.png');
 let win = null;
 let tray = null;
 let quitting = false;
+let hiddenOnce = false; // the first time the window is hidden, the person is told the app is still running
 // `npm run demo` (or PLUG_DOCTOR_DEMO=1) swaps the real system for simulated devices.
 const demo = process.argv.includes('--demo') || process.env.PLUG_DOCTOR_DEMO ? createDemo() : null;
 const sys = demo ? demo.ctx : {};
@@ -31,6 +33,7 @@ const diagnoses = new Map(); // deviceId -> latest diagnosis
 const inFlight = new Map(); // deviceId -> Promise<diagnosis>
 const fixing = new Set(); // deviceIds with a fix running
 const autoFixed = new Set(); // deviceIds we already auto-fixed this session
+const stopRequested = new Set(); // deviceIds the person stopped while a fix runs
 const pending = new Map(); // token -> resolve (approvals, manual steps)
 let assistant = null;
 let assistantDeviceId = null; // device the person was looking at when they asked
@@ -58,14 +61,41 @@ async function diagnoseById(id) {
   if (!device) throw new Error('That device is no longer connected.');
   if (inFlight.has(id)) return inFlight.get(id);
   const p = diagnose(device, sys)
-    .then((r) => {
-      diagnoses.set(id, r);
-      send('diagnosis', r);
-      return r;
-    })
+    .then((r) => publish(id, r))
+    .catch((err) => publish(id, unknownDiagnosis(device, err)))
     .finally(() => inFlight.delete(id));
   inFlight.set(id, p);
   return p;
+}
+
+/** Store and show a diagnosis, unless the device was unplugged while it was being checked. */
+function publish(id, r) {
+  if (watcher.snapshot().some((d) => d.id === id)) {
+    diagnoses.set(id, r);
+    send('diagnosis', r);
+  }
+  return r;
+}
+
+/** What the screen shows when a check fails outright: an explanation, not an endless spinner. */
+function unknownDiagnosis(device, err) {
+  const title = (device.displayName ?? [device.vendorName, device.productName].filter(Boolean).join(' ')) || 'Device';
+  return {
+    deviceId: device.id,
+    source: device.source ?? 'usb',
+    title,
+    category: 'generic',
+    categoryLabel: 'Device',
+    icon: 'unknown',
+    status: 'unknown',
+    headline: `Plug Doctor could not finish checking this device. ${err.message}`,
+    support: verdict('unknown', { platform: process.platform }),
+    checks: [],
+    plans: [],
+    facts: {},
+    recipes: [],
+    checkedAt: new Date().toISOString(),
+  };
 }
 
 function autoEligible(plan) {
@@ -75,10 +105,12 @@ function autoEligible(plan) {
 async function applyPlan(deviceId, plan) {
   if (fixing.has(deviceId)) throw new Error('A fix is already running for this device.');
   fixing.add(deviceId);
+  stopRequested.delete(deviceId);
   send('fix-progress', { deviceId, planId: plan.id, type: 'plan-start', title: plan.title });
   try {
     const outcome = await runPlan(plan, {
       ...sys,
+      shouldStop: () => stopRequested.has(deviceId),
       onProgress: (e) => {
         send('fix-progress', { deviceId, planId: plan.id, type: e.type, index: e.index, title: e.step.title, result: e.result });
         if (e.type === 'step-manual' && e.step.kind === 'open-url' && /^https:\/\//.test(e.step.url)) shell.openExternal(e.step.url);
@@ -89,6 +121,7 @@ async function applyPlan(deviceId, plan) {
     return outcome;
   } finally {
     fixing.delete(deviceId);
+    stopRequested.delete(deviceId);
     // Re-check so the screen shows the real state, not our hopes.
     diagnoseById(deviceId).catch(() => {});
   }
@@ -100,6 +133,8 @@ function notify(title, body) {
 
 /** The heart of "plug it in and it works". */
 async function onAttach(device) {
+  // Unplugged and plugged back in during its own fix: the fix will report the result.
+  if (fixing.has(device.id)) return;
   const name = device.displayName ?? [device.vendorName, device.productName].filter(Boolean).join(' ');
   let r;
   try {
@@ -151,6 +186,10 @@ function createWindow() {
     if (!quitting && tray) {
       e.preventDefault();
       win.hide();
+      if (!hiddenOnce) {
+        hiddenOnce = true;
+        notify('Plug Doctor is still running', 'It keeps watching for devices. Press Ctrl+Q (Cmd+Q on a Mac) to quit.');
+      }
     }
   });
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -186,6 +225,7 @@ function getAssistant() {
     assistant = new Assistant({
       apiKey: key,
       webResearch: s.webResearch,
+      demo: Boolean(demo), // in demo mode the assistant reads the simulated computer only
       getDevices: () => watcher.snapshot(),
       diagnoseDevice: (id) => diagnoseById(id),
       onEvent: (e) => send('assistant', e),
@@ -207,11 +247,24 @@ function registerIpc() {
   }));
   ipcMain.handle('devices:diagnose', (_e, id) => diagnoseById(String(id)));
   ipcMain.handle('fix:run', async (_e, deviceId, planId) => {
+    const id = String(deviceId);
+    if (!watcher.snapshot().some((d) => d.id === id)) throw new Error('That device is no longer connected.');
     // Never trust a plan from the page: look it up from our own diagnosis.
-    const plan = diagnoses.get(String(deviceId))?.plans.find((p) => p.id === planId);
+    const plan = diagnoses.get(id)?.plans.find((p) => p.id === planId);
     if (!plan) throw new Error('That fix is out of date. Check the device again.');
-    const outcome = await applyPlan(String(deviceId), plan);
+    const outcome = await applyPlan(id, plan);
     return { ok: outcome.ok, cancelled: outcome.cancelled ?? false };
+  });
+  ipcMain.handle('fix:stop', (_e, deviceId) => {
+    const id = String(deviceId);
+    if (!fixing.has(id)) return false;
+    stopRequested.add(id);
+    cancelWaits(); // a "Done?" question that is waiting is answered "no" now
+    return true;
+  });
+  ipcMain.handle('app:quit', () => {
+    quitting = true;
+    app.quit();
   });
   ipcMain.handle('fix:manual-done', (_e, t, done) => settle(t, Boolean(done)));
   ipcMain.handle('approval:respond', (_e, t, approved) => settle(t, Boolean(approved)));
@@ -229,17 +282,24 @@ function registerIpc() {
   ipcMain.handle('clipboard:write', (_e, text) => clipboard.writeText(String(text)));
   ipcMain.handle('settings:get', () => settings.publicView());
   ipcMain.handle('settings:update', (_e, patch) => {
-    const next = settings.update(patch ?? {});
-    assistant = null; // pick up a new key or tool set
-    return next;
+    // getAssistant() rebuilds the assistant when the key or web setting changes; other changes keep its memory.
+    return settings.update(patch ?? {});
   });
   ipcMain.handle('assistant:send', async (_e, text, deviceId) => {
     if (!settings.load().assistantEnabled) throw new Error('The assistant is turned off in Settings.');
     assistantDeviceId = deviceId ? String(deviceId) : null;
     await getAssistant().send(String(text).slice(0, 8000), assistantDeviceId);
   });
-  ipcMain.handle('assistant:stop', () => assistant?.abort?.abort());
+  ipcMain.handle('assistant:stop', () => {
+    assistant?.abort?.abort();
+    cancelWaits();
+  });
   ipcMain.handle('assistant:reset', () => assistant?.reset());
+}
+
+/** Answer every question still waiting on the person with "no": used when they press Stop. */
+function cancelWaits() {
+  for (const t of [...pending.keys()]) settle(t, false);
 }
 
 function settle(t, value) {

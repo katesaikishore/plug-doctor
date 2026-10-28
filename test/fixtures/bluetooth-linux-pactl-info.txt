@@ -5,7 +5,7 @@ Is Local: yes
 Client Index: 104
 Tile Size: 65472
 User Name: kate
-Host Name: thinkpad
+Host Name: test-laptop
 Server Name: PulseAudio (on PipeWire 1.0.5)
 Server Version: 15.0.0
 Default Sample Specification: float32le 2ch 48000Hz

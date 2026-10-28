@@ -62,6 +62,13 @@ function iconFor(...keys) {
 const STATUS_TEXT = { ok: 'Working', 'needs-fix': 'Needs a fix', broken: 'Not working', unknown: 'Connected', idle: 'Not connected', checking: 'Checking…' };
 const CHECK_MARK = { pass: '✓', warn: '!', fail: '✕', info: 'i' };
 
+/** A command as a person would type it. Arguments with spaces or symbols are quoted. */
+function commandLine(s) {
+  if (s.kind !== 'command') return s.title;
+  const quote = (a) => (/^[\w@%+=:,./-]+$/.test(a) ? a : "'" + a.replace(/'/g, "'\\''") + "'");
+  return `${s.admin ? '# administrator\n' : ''}${[s.cmd, ...s.args.map(quote)].join(' ')}`;
+}
+
 // ---------------------------------------------------------------- state
 
 const state = {
@@ -74,6 +81,8 @@ const state = {
   assistantBusy: false,
   settings: {},
   reports: {}, // deviceId -> report
+  drafts: {}, // deviceId -> chat text not sent yet
+  stepsOpen: {}, // "deviceId:planId" -> whether the person opened or closed the step list
   sources: [{ id: 'usb', label: 'USB' }], // device sources, in sidebar order
 };
 
@@ -203,10 +212,15 @@ function renderDetail() {
   if (state.tab === 'fix') body = renderFixTab(d, r);
   else if (state.tab === 'assistant') body = renderAssistantTab(d);
   else body = renderHoodTab(d, r);
+  // Redrawing replaces the chat box, so keep where the person was: scroll position and focus.
+  const oldLog = $('#chat-log');
+  const wasAtBottom = !oldLog || oldLog.scrollHeight - oldLog.scrollTop - oldLog.clientHeight < 40;
+  const hadFocus = document.activeElement?.id === 'chat-input';
   root.replaceChildren(head, tabs, h('div', { class: 'tab-body' }, body));
   if (state.tab === 'assistant') {
     const log = $('#chat-log');
-    if (log) log.scrollTop = log.scrollHeight;
+    if (log && wasAtBottom) log.scrollTop = log.scrollHeight;
+    if (hadFocus) $('#chat-input')?.focus();
   }
 }
 
@@ -223,6 +237,14 @@ async function recheck(id) {
 
 function renderFixTab(d, r) {
   if (!r) return h('div', { class: 'loading' }, h('span', { class: 'spinner' }), 'Running checks…');
+  if (r.status === 'idle') {
+    return h(
+      'div',
+      { class: 'card callout' },
+      h('h3', {}, 'Not connected right now'),
+      h('p', {}, 'This device is paired with your computer but is switched off or out of range. Turn it on, then press "Check again".'),
+    );
+  }
   const parts = [];
   const prog = state.progress[d.id];
 
@@ -280,7 +302,7 @@ function renderPlan(d, plan, recommended, prog) {
         {},
         h('strong', {}, s.title),
         s.explain ? h('p', { class: 'muted small' }, s.explain) : null,
-        s.kind === 'command' ? h('code', { class: 'cmd' }, `${s.admin ? '# administrator\n' : ''}${[s.cmd, ...s.args].join(' ')}`) : null,
+        s.kind === 'command' ? h('code', { class: 'cmd' }, commandLine(s)) : null,
         s.kind === 'open-url' ? h('a', { href: '#', onclick: (e) => (e.preventDefault(), plugDoctor.openExternal(s.url)) }, s.url) : null,
         prog?.errors?.[i] ? h('pre', { class: 'error-out' }, prog.errors[i]) : null,
       ),
@@ -313,15 +335,30 @@ function renderPlan(d, plan, recommended, prog) {
       plan.confidence != null ? h('span', { class: 'confidence', title: 'How sure Plug Doctor is that this will work' }, `${Math.round(plan.confidence * 100)}% sure`) : null,
     ),
     h('p', {}, plan.why),
-    h('details', { open: running || recommended ? true : null }, h('summary', {}, `${plan.steps.length} step${plan.steps.length === 1 ? '' : 's'}`), h('ol', { class: 'steps' }, stepEls)),
+    h(
+      'details',
+      {
+        // Remember whether the person opened or closed the list, so a redraw does not undo it.
+        open: state.stepsOpen[`${d.id}:${plan.id}`] ?? (running || recommended),
+        ontoggle: (e) => (state.stepsOpen[`${d.id}:${plan.id}`] = e.target.open),
+      },
+      h('summary', {}, `${plan.steps.length} step${plan.steps.length === 1 ? '' : 's'}`),
+      h('ol', { class: 'steps' }, stepEls),
+    ),
     manual,
     footer,
     h(
       'div',
       { class: 'actions' },
       h('button', { class: `btn ${recommended ? 'primary' : 'ghost'}`, disabled: running ? true : null, onclick: () => runFix(d.id, plan) }, running ? 'Working…' : prog?.done && !prog.ok ? 'Try again' : state.diagnoses[d.id]?.status === 'ok' ? 'Do it' : 'Make it work'),
+      running ? h('button', { class: 'btn ghost', onclick: () => stopFix(d.id) }, 'Stop') : null,
     ),
   );
+}
+
+/** Stops before the next step. A command that is already running finishes first. */
+function stopFix(deviceId) {
+  plugDoctor.stopFix(deviceId).catch((err) => toast(err.message));
 }
 
 async function runFix(deviceId, plan) {
@@ -372,8 +409,11 @@ function renderAssistantTab(d) {
   if (state.assistantBusy) log.append(h('div', { class: 'activity' }, h('span', { class: 'spinner' }), 'Working…'));
 
   const input = h('textarea', { id: 'chat-input', rows: '2', placeholder: 'e.g. "My printer shows up but nothing prints"', disabled: state.assistantBusy ? true : null });
+  input.value = state.drafts[d.id] ?? '';
+  input.addEventListener('input', () => (state.drafts[d.id] = input.value));
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    // Enter sends, but not while an input method is still composing text (Japanese, Chinese and others).
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
       e.preventDefault();
       sendChat(d, input.value);
     }
@@ -395,6 +435,7 @@ function renderChatItem(m) {
   if (m.role === 'assistant') return h('div', { class: 'bubble assistant' }, renderMarkdown(m.text, plugDoctor.openExternal));
   if (m.role === 'activity') return h('div', { class: 'activity' }, '↳ ', m.text);
   if (m.role === 'error') return h('div', { class: 'bubble error' }, m.text);
+  if (m.role === 'manual') return renderManualChat(m);
   if (m.role === 'recipe') {
     const json = JSON.stringify(m.recipe, null, 2);
     return h(
@@ -414,14 +455,36 @@ function renderChatItem(m) {
   return h('div', {}, m.text);
 }
 
+/** A manual step that an assistant-proposed fix is waiting on, answered right in the chat. */
+function renderManualChat(m) {
+  const answer = (done) => {
+    m.answered = true;
+    plugDoctor.manualDone(m.token, done);
+    renderDetail();
+  };
+  return h(
+    'div',
+    { class: 'card your-turn' },
+    h('p', { class: 'eyebrow' }, 'Your turn'),
+    h('strong', {}, m.title),
+    h('p', {}, m.explain ?? ''),
+    m.answered
+      ? h('p', { class: 'muted small' }, 'Answered.')
+      : h(
+          'div',
+          { class: 'actions' },
+          h('button', { class: 'btn ghost small', onclick: () => answer(false) }, 'Stop'),
+          h('button', { class: 'btn primary small', onclick: () => answer(true) }, "I've done this"),
+        ),
+  );
+}
+
 function shareRecipe(recipe, json) {
-  const params = new URLSearchParams({
-    template: 'recipe.yml',
-    title: `Recipe: ${recipe.name ?? 'new device'}`,
-    labels: 'recipe',
-    recipe: json.slice(0, 6000),
-  });
+  // A recipe is too long for an address, so it goes to the clipboard and the issue asks for a paste.
+  plugDoctor.copy(json);
+  const params = new URLSearchParams({ template: 'recipe.yml', title: `Recipe: ${recipe.name ?? 'new device'}`, labels: 'recipe' });
   plugDoctor.openExternal(`https://github.com/katesaikishore/plug-doctor/issues/new?${params}`);
+  toast('Recipe copied. Paste it into the issue.');
 }
 
 function askAboutDevice(d) {
@@ -431,6 +494,11 @@ function askAboutDevice(d) {
 async function sendChat(d, text) {
   text = String(text ?? '').trim();
   if (!text || state.assistantBusy) return;
+  if (!state.settings.assistantEnabled || !state.settings.hasApiKey) {
+    toast('Turn the assistant on, and add an API key, in Settings first.');
+    return openSettings();
+  }
+  if (d) state.drafts[d.id] = '';
   state.chat.push({ role: 'you', text });
   state.assistantBusy = true;
   renderDetail();
@@ -552,7 +620,7 @@ plugDoctor.onApprovalRequest(({ plan, token }) => {
   $('#approval-title').textContent = plan.title;
   $('#approval-why').textContent = plan.why;
   $('#approval-steps').replaceChildren(
-    ...plan.steps.map((s) => h('li', { class: 'step' }, h('div', {}, h('strong', {}, s.title), h('p', { class: 'muted small' }, s.explain), h('code', { class: 'cmd' }, `${s.admin ? '# administrator\n' : ''}${[s.cmd, ...s.args].join(' ')}`)))),
+    ...plan.steps.map((s) => h('li', { class: 'step' }, h('div', {}, h('strong', {}, s.title), h('p', { class: 'muted small' }, s.explain), h('code', { class: 'cmd' }, commandLine(s))))),
   );
   const dlg = $('#approval');
   dlg.returnValue = '';
@@ -568,6 +636,8 @@ plugDoctor.onApprovalRequest(({ plan, token }) => {
 // ---------------------------------------------------------------- events
 
 function toast(text) {
+  // One message at a time: a new one replaces the old one instead of stacking on it.
+  document.querySelectorAll('.toast').forEach((el) => el.remove());
   const t = h('div', { class: 'toast', role: 'status' }, text);
   document.body.append(t);
   setTimeout(() => t.remove(), 4000);
@@ -615,7 +685,8 @@ plugDoctor.onFixProgress((e) => {
     if (e.type === 'step-start') state.chat.push({ role: 'activity', text: `Running: ${e.title}` });
     if (e.type === 'step-done') state.chat.push({ role: 'activity', text: `Done: ${e.title}` });
     if (e.type === 'step-failed') state.chat.push({ role: 'activity', text: `Failed: ${e.title}: ${prog.errors[e.index]}` });
-    if (e.type === 'manual-wait') plugDoctor.manualDone(e.token, true);
+    // The chat shows the step and waits for the person, rather than answering "done" for them.
+    if (e.type === 'manual-wait') state.chat.push({ role: 'manual', token: e.token, title: e.title, explain: e.explain });
   }
   if (state.selected === e.deviceId) renderDetail();
 });
@@ -632,6 +703,11 @@ plugDoctor.onAssistant((e) => {
 
 $('#open-settings').innerHTML = ICONS.gear;
 $('#open-settings').addEventListener('click', openSettings);
+$('#quit-app').addEventListener('click', () => plugDoctor.quit());
+// The app hides its menu bar, so Ctrl+Q (Cmd+Q on a Mac) is how a person quits it.
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'q') plugDoctor.quit();
+});
 document.body.dataset.platform = plugDoctor.platform;
 
 (async () => {

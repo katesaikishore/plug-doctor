@@ -55,7 +55,7 @@ You search the internet, find a forum post from years ago, and try things until 
 
 You don't need any devices to try it. The demo shows a simulated Mac with sixteen devices, including a printer, a phone, a TV, headphones, a webcam, a drive and a game controller.
 
-You need [Node.js](https://nodejs.org) version 20 or newer. Then open a terminal and type:
+You need [Node.js](https://nodejs.org) version 22.12 or newer. Then open a terminal and type:
 
 ```sh
 git clone https://github.com/katesaikishore/plug-doctor.git
@@ -64,7 +64,7 @@ npm install
 npm run demo
 ```
 
-Click around. Nothing real is changed in demo mode.
+Click around. Demo mode reads and changes nothing on your computer. If you turn on the AI assistant, the simulated devices are still sent to Anthropic when you ask it something.
 
 ## Use it with your own devices
 
@@ -121,23 +121,23 @@ These claims come from automated tests that run on all three systems. Testing on
 ## Is it safe?
 
 - **You see every command before it runs.** The exact steps are shown in plain text before anything changes.
-- **Its built-in fixes only add things,** like a printer or a helper package. They never remove software.
+- **Its built-in fixes add things,** like a printer or a helper package, or switch off a conflicting service. They never remove software.
 - **Passwords go through your computer's own prompt.** Plug Doctor never sees your password.
-- **Nothing goes to the internet** unless you turn on the AI assistant. The home-network scan only looks at your own network.
+- **Apart from the AI assistant, the only internet use is fixes that install software.** Those download from your system's own software sources. The home-network scan only looks at your own network.
 
 ## Your privacy
 
 - Plug Doctor has no accounts and doesn't track you.
-- The **AI assistant** is optional. If you use it, the details of the device you're asking about, Plug Doctor's checks and the output of a few read-only system checks go to Anthropic's Claude service so it can answer you. Nothing else is sent.
+- The **AI assistant** is optional. If you use it, what it sends to Anthropic's Claude service includes your messages, the list of devices Plug Doctor can see (their names, IDs and details, which can include serial numbers), the checks Plug Doctor has run on the device you asked about, and the output of any read-only system checks the assistant runs. With web research on, it also sends search queries to the web.
 - Your AI key is stored encrypted in your computer's keychain. It is never shown on screen.
 
 ## The optional AI assistant
 
-Plug Doctor's own checks and fixes work without the internet. For the harder problems, you can turn on the **AI assistant**, which is powered by [Claude](https://claude.ai) from Anthropic.
+Plug Doctor's checks work without the internet, and so do fixes that only change a setting. Fixes that install software need the internet to download it. For the harder problems, you can turn on the **AI assistant**, which is powered by [Claude](https://claude.ai) from Anthropic.
 
 To use it, open **Settings** and paste your Anthropic API key. Get a key at [console.anthropic.com](https://console.anthropic.com). Anthropic charges for API use, so check their pricing first.
 
-The assistant can look at what your computer sees, search the web for drivers and known fixes, and propose a fix. **It never changes anything without asking you first.** It can only use a short list of safe commands, and it can't remove software.
+The assistant can look at what your computer sees, search the web for drivers and known fixes, and propose a fix. **It never changes anything without asking you first.** It can only run a short list of commands, checked one by one, and it can't remove software or delete a print queue.
 
 ## Command line
 
@@ -168,9 +168,9 @@ Found a security problem? Please report it privately, as described in [SECURITY.
 
 **Is it free?** Yes. The code is free and open source under the MIT license. The optional AI assistant needs an Anthropic API key, which you pay for directly to Anthropic.
 
-**Does it need an account or an internet connection?** No account is needed. The checks and fixes work without the internet. Only the AI assistant, and the first download of the app, need it.
+**Does it need an account or an internet connection?** No account is needed. The checks work without the internet. Fixes that install software need it, and so does the AI assistant.
 
-**Will it change my computer without asking?** No. Some safe fixes can run automatically when you plug in a device, but only if you turn that on in Settings, and only for things you plugged in yourself.
+**Will it change my computer without asking?** Only in one case. Auto-fix is on by default: when you plug in a USB device, Plug Doctor may run a safe fix on its own, such as adding a printer. Those fixes only add things. You can turn auto-fix off in Settings.
 
 **Why is it called Plug Doctor?** Because it does what a good repair person does: asks what's wrong, explains it, and fixes it with you.
 

@@ -25,7 +25,7 @@ const source = {
 module.exports = { source, /* parsers, for tests */ };
 ```
 
-`src/core/sources/index.js` picks it up automatically.
+Add its name to the list in `src/core/sources/index.js`.
 
 ## The device shape
 
@@ -69,7 +69,7 @@ const family = {
 module.exports = { family };
 ```
 
-Put it in `src/core/families/<id>.js`; `src/core/families/index.js` loads it. The `ctx` passed to `diagnose` has:
+Put it in `src/core/families/<id>.js`, and add its name to the list in `src/core/families/index.js`. The `ctx` passed to `diagnose` has:
 
 - `platform` and `arch` (`darwin` / `arm64` ...)
 - `run(cmd, args, opts)`, which never throws and returns `{ ok, code, stdout, stderr, missing }`

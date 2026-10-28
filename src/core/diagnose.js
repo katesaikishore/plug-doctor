@@ -16,7 +16,9 @@ function genericChecks(device, family, platform) {
   if (device.driver.bound === true) {
     checks.push(check('driver-bound', 'A driver is attached', 'pass', device.driver.names.join(', ')));
   } else if (device.driver.bound === false) {
-    if (family.userspace?.(platform, device)) {
+    // Smart-card readers (class 0b) are driven by a normal service, not a kernel driver.
+    const smartCard = device.interfaces?.some((i) => i.class === '0b');
+    if (smartCard || family.userspace?.(platform, device)) {
       checks.push(check('driver-bound', 'Driver', 'info', 'Handled by software that runs as a normal app; no kernel driver is needed.'));
     } else {
       checks.push(check('driver-bound', 'A driver is attached', 'fail', 'No driver has claimed any part of this device.'));

@@ -57,7 +57,8 @@ function supportFor(device, { platform, arch = process.arch, recipes = [] }) {
 
   if (classes.has('07')) return out('app', 'Printers are driven by the print system. Plug Doctor picks the driver.');
   if (classes.has('06')) return platform === 'linux' ? out('app') : out('native');
-  if (classes.has('e0') && platform === 'darwin') {
+  // A USB Bluetooth adapter that macOS has already bound is working, so only unbound ones are refused.
+  if (classes.has('e0') && platform === 'darwin' && !device.driver?.bound) {
     return out('unsupported', 'macOS only uses its built-in Bluetooth. USB Bluetooth adapters are not supported.');
   }
   if ([...classes].every((c) => NATIVE_CLASSES.has(c))) return out('native');
