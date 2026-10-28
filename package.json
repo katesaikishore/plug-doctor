@@ -13,7 +13,8 @@
     "cli": "node bin/plug-doctor.js",
     "test": "node --test",
     "dist": "electron-builder",
-    "dist:dir": "electron-builder --dir"
+    "dist:dir": "electron-builder --dir",
+    "e2e": "node scripts/e2e-demo.js"
   },
   "keywords": [
     "usb",
@@ -61,13 +62,29 @@
     "mac": {
       "category": "public.app-category.utilities",
       "target": [
-        "dmg",
-        "zip"
-      ]
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "hardenedRuntime": false
     },
     "win": {
       "target": [
-        "nsis"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
       ]
     },
     "nsis": {
@@ -76,11 +93,30 @@
     },
     "linux": {
       "target": [
-        "AppImage",
-        "deb"
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
       "category": "Utility",
-      "maintainer": "Plug Doctor contributors"
-    }
-  }
+      "maintainer": "Plug Doctor contributors",
+      "description": "Plug it in. It just works."
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "katesaikishore",
+      "repo": "plug-doctor",
+      "releaseType": "draft"
+    },
+    "artifactName": "plug-doctor-${version}-${os}-${arch}.${ext}"
+  },
+  "desktopName": "plug-doctor.desktop"
 }

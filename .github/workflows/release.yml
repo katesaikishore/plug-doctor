@@ -1,5 +1,7 @@
 name: Release
 
+# Push a tag such as v0.1.0 to build the installers on macOS, Windows and Linux.
+# They are attached to a DRAFT GitHub release: look it over, then publish it.
 on:
   push:
     tags: ['v*']
@@ -8,8 +10,24 @@ permissions:
   contents: write
 
 jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: The tag must match the version in package.json
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match package.json version $VERSION"
+            exit 1
+          fi
+
   build:
+    needs: check-version
     strategy:
+      fail-fast: false
+      # One system at a time: parallel jobs can race to create the same draft release.
+      max-parallel: 1
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
@@ -21,6 +39,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
-      - run: npx electron-builder --publish always
+      - name: Build the installers and attach them to the draft release
+        run: npx electron-builder --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No Apple or Windows signing certificate yet: build unsigned, and do not search for one.
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
