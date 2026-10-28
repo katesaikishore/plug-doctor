@@ -1,0 +1,162 @@
+{
+ "_comment": "Simulated system output for demo mode (npm run demo). Not real devices.",
+ "SPDisplaysDataType": {
+  "SPDisplaysDataType": [
+   {
+    "_name": "Apple M1",
+    "spdisplays_mtlgpufamilysupport": "spdisplays_metal3",
+    "spdisplays_ndrvs": [
+     {
+      "_name": "Color LCD",
+      "_spdisplays_display-product-id": "a045",
+      "_spdisplays_display-serial-number": "fd626d62",
+      "_spdisplays_display-vendor-id": "610",
+      "_spdisplays_display-week": "0",
+      "_spdisplays_display-year": "0",
+      "_spdisplays_displayID": "1",
+      "_spdisplays_pixels": "2880 x 1800",
+      "_spdisplays_resolution": "1440 x 900 @ 60.00Hz",
+      "spdisplays_ambient_brightness": "spdisplays_yes",
+      "spdisplays_connection_type": "spdisplays_internal",
+      "spdisplays_display_type": "spdisplays_built-in-retina-lcd",
+      "spdisplays_main": "spdisplays_yes",
+      "spdisplays_mirror": "spdisplays_off",
+      "spdisplays_online": "spdisplays_yes",
+      "spdisplays_pixelresolution": "spdisplays_2560x1600Retina"
+     },
+     {
+      "_name": "SAMSUNG",
+      "_spdisplays_display-product-id": "7279",
+      "_spdisplays_display-serial-number": "1000e00",
+      "_spdisplays_display-vendor-id": "4c2d",
+      "_spdisplays_display-week": "1",
+      "_spdisplays_display-year": "2021",
+      "_spdisplays_displayID": "3",
+      "_spdisplays_pixels": "3840 x 2160",
+      "_spdisplays_resolution": "3840 x 2160 @ 30.00Hz",
+      "spdisplays_mirror": "spdisplays_off",
+      "spdisplays_online": "spdisplays_yes",
+      "spdisplays_pixelresolution": "2160p 4K UHD - Ultra High Definition",
+      "spdisplays_rotation": "spdisplays_supported"
+     }
+    ],
+    "spdisplays_vendor": "sppci_vendor_Apple",
+    "sppci_bus": "spdisplays_builtin",
+    "sppci_cores": "7",
+    "sppci_device_type": "spdisplays_gpu",
+    "sppci_model": "Apple M1"
+   }
+  ]
+ },
+ "SPBluetoothDataType": {
+  "SPBluetoothDataType": [
+   {
+    "controller_properties": {
+     "controller_address": "F0:B3:EC:1A:2B:3C",
+     "controller_chipset": "BCM_4387",
+     "controller_discoverable": "attrib_off",
+     "controller_firmwareVersion": "22.1.534.1484",
+     "controller_productID": "0x4A0C",
+     "controller_state": "attrib_on",
+     "controller_supportedServices": "0x392039 < HFP AVRCP A2DP HID Braille LEA AACP GATT SerialPort >",
+     "controller_transport": "PCIe",
+     "controller_vendorID": "0x004C (Apple)"
+    },
+    "device_connected": [
+     {
+      "AirPods Pro": {
+       "device_address": "AC:90:85:4D:5E:6F",
+       "device_batteryLevelCase": "45%",
+       "device_batteryLevelLeft": "100%",
+       "device_batteryLevelRight": "98%",
+       "device_caseVersion": "1.0.0",
+       "device_firmwareVersion": "6A321",
+       "device_minorType": "Headphones",
+       "device_productID": "0x2014",
+       "device_serialNumber": "H3KXXXXXXXXX",
+       "device_serialNumberLeft": "GX1XXXXXXXXX",
+       "device_serialNumberRight": "GX2XXXXXXXXX",
+       "device_services": "0x980019 < HFP AVRCP A2DP AACP GATT >",
+       "device_vendorID": "0x004C"
+      }
+     }
+    ],
+    "device_not_connected": [
+     {
+      "Magic Keyboard": {
+       "device_address": "F4:6A:DD:01:23:45",
+       "device_minorType": "Keyboard",
+       "device_productID": "0x029C",
+       "device_services": "0x400020 < HID GATT >",
+       "device_vendorID": "0x004C"
+      }
+     },
+     {
+      "iPhone": {
+       "device_address": "3C:22:FB:98:76:54"
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "hwModel": "MacBookAir10,1",
+ "mdns": [
+  {
+   "type": "_ipp._tcp",
+   "name": "HP LaserJet Pro M404n",
+   "fullName": "HP LaserJet Pro M404n._ipp._tcp.local",
+   "host": "HP-LaserJet-M404n.local",
+   "port": 631,
+   "addresses": [
+    "192.168.1.30"
+   ],
+   "txt": {
+    "txtvers": "1",
+    "ty": "HP LaserJet Pro M404n",
+    "rp": "ipp/print",
+    "pdl": "application/pdf,image/urf,image/pwg-raster",
+    "urf": "W8,SRGB24,CP1,RS600",
+    "color": "F",
+    "usb_mfg": "HP",
+    "usb_mdl": "LaserJet Pro M404n"
+   }
+  },
+  {
+   "type": "_googlecast._tcp",
+   "name": "Chromecast-4d6a2f1c9e8b",
+   "fullName": "Chromecast-4d6a2f1c9e8b._googlecast._tcp.local",
+   "host": "4d6a2f1c-9e8b-1111-2222-333344445555.local",
+   "port": 8009,
+   "addresses": [
+    "192.168.1.45"
+   ],
+   "txt": {
+    "id": "4d6a2f1c9e8b",
+    "md": "Chromecast",
+    "fn": "Living Room TV",
+    "ca": "201221",
+    "st": "0",
+    "rs": ""
+   }
+  }
+ ],
+ "ssdp": [
+  {
+   "address": "192.168.1.40",
+   "usn": "uuid:7f3c1a52-48d0-4b8e-9f5d-0a1b2c3d4e5f",
+   "location": "http://192.168.1.40:1468/",
+   "server": "WebOS/4.1.0 UPnP/1.0",
+   "st": [
+    "urn:schemas-upnp-org:device:MediaRenderer:1",
+    "urn:dial-multiscreen-org:service:dial:1"
+   ],
+   "description": {
+    "friendlyName": "[LG] webOS TV OLED55C1PUB",
+    "manufacturer": "LG Electronics",
+    "modelName": "LG TV",
+    "deviceType": "urn:schemas-upnp-org:device:MediaRenderer:1"
+   }
+  }
+ ]
+}

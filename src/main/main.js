@@ -19,13 +19,14 @@ let tray = null;
 let quitting = false;
 // `npm run demo` (or PLUG_DOCTOR_DEMO=1) swaps the real system for simulated devices.
 const demo = process.argv.includes('--demo') || process.env.PLUG_DOCTOR_DEMO ? createDemo() : null;
-const sys = demo ? { run: demo.run, platform: demo.platform } : {};
+const sys = demo ? demo.ctx : {};
 // USB, screens, Bluetooth and the home network, each refreshed at its own pace.
 const inventory = createInventory({
   ctx: sys,
   isEnabled: (id) => id !== 'network' || settings.load().scanNetwork,
 });
 const watcher = new DeviceWatcher({ list: demo ? demo.list : inventory.list });
+const sourceList = () => (demo ? demo.sources : inventory.sources).map((s) => ({ id: s.id, label: s.label }));
 const diagnoses = new Map(); // deviceId -> latest diagnosis
 const inFlight = new Map(); // deviceId -> Promise<diagnosis>
 const fixing = new Set(); // deviceIds with a fix running
@@ -202,7 +203,7 @@ function registerIpc() {
   ipcMain.handle('devices:list', () => ({
     devices: watcher.snapshot(),
     diagnoses: Object.fromEntries(diagnoses),
-    sources: inventory.sources.map((s) => ({ id: s.id, label: s.label })),
+    sources: sourceList(),
   }));
   ipcMain.handle('devices:diagnose', (_e, id) => diagnoseById(String(id)));
   ipcMain.handle('fix:run', async (_e, deviceId, planId) => {
