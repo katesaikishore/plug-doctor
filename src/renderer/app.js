@@ -33,7 +33,31 @@ const ICONS = {
   unknown: svg('<path d="M10 2v5H7v6a5 5 0 0 0 10 0V7h-3V2"/><path d="M12 18v4"/>'),
   gear: svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'),
   plug: svg('<path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0z"/><path d="M12 18v4"/>'),
+  display: svg('<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>'),
+  tv: svg('<rect x="2" y="6" width="20" height="13" rx="2"/><path d="M8 2l4 4 4-4"/>'),
+  bluetooth: svg('<path d="M7 7l10 10-5 5V2l5 5L7 17"/>'),
+  headphones: svg('<path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="2" y="14" width="5" height="7" rx="2"/><rect x="17" y="14" width="5" height="7" rx="2"/>'),
+  speaker: svg('<rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="14" r="4"/><path d="M12 6h.01"/>'),
+  phone: svg('<rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/>'),
+  scanner: svg('<path d="M3 13h18v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M5 13l3-8h11"/><path d="M7 17h.01"/>'),
+  gamepad: svg('<path d="M6 8h12a4 4 0 0 1 4 4l-1 5a2.5 2.5 0 0 1-4.5 1L15 16H9l-1.5 2A2.5 2.5 0 0 1 3 17l-1-5a4 4 0 0 1 4-4z"/><path d="M7 11v3M5.5 12.5h3M16 12h.01M18 13.5h.01"/>'),
+  adapter: svg('<path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M2 9a15 15 0 0 1 20 0"/><path d="M12 19.5h.01"/>'),
+  cast: svg('<path d="M2 16a6 6 0 0 1 6 6M2 12a10 10 0 0 1 10 10M2 20h.01"/><path d="M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/>'),
+  keyboard: svg('<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>'),
+  mouse: svg('<rect x="6" y="2" width="12" height="20" rx="6"/><path d="M12 6v4"/>'),
+  tablet: svg('<path d="M3 21l3-1 11-11-2-2L4 18z"/><path d="M14 6l2-2 4 4-2 2"/>'),
+  'smart-home': svg('<path d="M3 11l9-8 9 8v10H3z"/><path d="M9 21v-6h6v6"/>'),
 };
+/** Other names families may use for the same pictures. */
+const ICON_ALIASES = { airplay: 'cast', 'network-device': 'network', 'network-adapter': 'adapter', wifi: 'adapter', ethernet: 'adapter', monitor: 'display', controller: 'gamepad', 'game-controller': 'gamepad', webcam: 'camera', midi: 'audio', usb: 'plug', generic: 'unknown', drive: 'storage' };
+function iconFor(...keys) {
+  for (const k of keys) {
+    if (!k) continue;
+    if (ICONS[k]) return ICONS[k];
+    if (ICONS[ICON_ALIASES[k]]) return ICONS[ICON_ALIASES[k]];
+  }
+  return ICONS.unknown;
+}
 
 const STATUS_TEXT = { ok: 'Working', 'needs-fix': 'Needs a fix', broken: 'Not working', unknown: 'Connected', checking: 'Checking…' };
 const CHECK_MARK = { pass: '✓', warn: '!', fail: '✕', info: 'i' };
@@ -50,14 +74,29 @@ const state = {
   assistantBusy: false,
   settings: {},
   reports: {}, // deviceId -> report
+  sources: [{ id: 'usb', label: 'USB' }], // device sources, in sidebar order
 };
 
 function deviceName(d) {
-  return d.displayName || `USB device ${d.vendorId}:${d.productId}`;
+  return d.displayName || (d.vendorId ? `USB device ${d.vendorId}:${d.productId}` : 'Unnamed device');
 }
 
 function primaryCategory(d) {
-  return state.diagnoses[d.id]?.category ?? d.categories[0] ?? 'unknown';
+  return state.diagnoses[d.id]?.category ?? d.categories?.[0] ?? 'unknown';
+}
+
+function deviceIcon(d) {
+  const r = state.diagnoses[d.id];
+  return iconFor(d.icon, r?.facts?.icon, r?.icon, primaryCategory(d), d.categories?.[0]);
+}
+
+function sourceLabel(id) {
+  return state.sources.find((s) => s.id === id)?.label ?? id;
+}
+
+/** "USB 03f0:2b17" for USB devices, the source's name for everything else. */
+function idLabel(d) {
+  return d.vendorId ? `USB ${d.vendorId}:${d.productId}` : sourceLabel(d.source ?? 'usb');
 }
 
 function statusOf(d) {
@@ -70,24 +109,35 @@ function renderList() {
   const list = $('#device-list');
   list.replaceChildren();
   if (state.devices.length === 0) {
-    list.append(h('li', { class: 'muted small pad' }, 'Nothing plugged in yet.'));
+    list.append(h('li', { class: 'group-title' }, 'Devices'), h('li', { class: 'muted small pad' }, 'Nothing plugged in yet.'));
     return;
   }
+  const order = state.sources.map((s) => s.id);
+  const groups = new Map(order.map((id) => [id, []]));
   for (const d of state.devices) {
-    const status = statusOf(d);
-    list.append(
-      h(
-        'li',
-        {},
+    const src = d.source ?? 'usb';
+    if (!groups.has(src)) groups.set(src, []);
+    groups.get(src).push(d);
+  }
+  for (const [src, devices] of groups) {
+    if (devices.length === 0) continue;
+    list.append(h('li', { class: 'group-title' }, sourceLabel(src)));
+    for (const d of devices) {
+      const status = statusOf(d);
+      list.append(
         h(
-          'button',
-          { class: `device-item ${state.selected === d.id ? 'selected' : ''}`, onclick: () => select(d.id) },
-          h('span', { class: 'device-icon', html: ICONS[primaryCategory(d)] ?? ICONS.unknown }),
-          h('span', { class: 'device-text' }, h('span', { class: 'device-name' }, deviceName(d)), h('span', { class: 'device-sub' }, STATUS_TEXT[status])),
-          h('span', { class: `dot ${status}` }),
+          'li',
+          {},
+          h(
+            'button',
+            { class: `device-item ${state.selected === d.id ? 'selected' : ''}`, onclick: () => select(d.id) },
+            h('span', { class: 'device-icon', html: deviceIcon(d) }),
+            h('span', { class: 'device-text' }, h('span', { class: 'device-name' }, deviceName(d)), h('span', { class: 'device-sub' }, STATUS_TEXT[status])),
+            h('span', { class: `dot ${status}` }),
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 }
 
@@ -110,7 +160,7 @@ function renderDetail() {
         { class: 'empty' },
         h('div', { class: 'empty-art', html: ICONS.plug }),
         h('h1', {}, 'Plug in a device.'),
-        h('p', {}, 'Printers, USB drives, serial adapters, dev boards, gadgets. Plug Doctor works out what it is, checks whether your computer can use it, and fixes it if it can.'),
+        h('p', {}, 'Printers, phones, screens and TVs, headphones, drives, cameras, controllers, dev boards. Plug Doctor works out what it is, checks whether your computer can use it, and fixes it if it can.'),
         state.devices.length ? h('p', { class: 'muted' }, 'Or pick something on the left.') : null,
       ),
     );
@@ -121,13 +171,14 @@ function renderDetail() {
   const head = h(
     'section',
     { class: 'device-head' },
-    h('div', { class: 'device-art', html: ICONS[primaryCategory(d)] ?? ICONS.unknown }),
+    h('div', { class: 'device-art', html: deviceIcon(d) }),
     h(
       'div',
       { class: 'device-title' },
-      h('p', { class: 'eyebrow' }, `${(r?.category ?? d.categories[0] ?? 'device').toUpperCase()} · USB ${d.vendorId}:${d.productId}`),
+      h('p', { class: 'eyebrow' }, `${(r?.categoryLabel ?? 'Device').toUpperCase()} · ${idLabel(d)}`),
       h('h1', {}, deviceName(d)),
       h('p', { class: 'headline' }, r?.headline ?? 'Checking this device…'),
+      r?.support ? h('p', { class: `support ${r.support.level}`, title: r.support.note ?? '' }, h('span', { class: 'support-dot' }), r.support.label, r.support.note ? h('span', { class: 'support-note' }, ` · ${r.support.note}`) : null) : null,
     ),
     h('div', { class: 'head-side' }, h('span', { class: `pill ${status}` }, STATUS_TEXT[status]), h('button', { class: 'btn ghost small', onclick: () => recheck(d.id) }, 'Check again')),
   );
@@ -384,6 +435,12 @@ async function newConversation() {
 
 // ---------------------------------------------------------------- under the hood
 
+/** "refreshHz" -> "Refresh hz", "builtIn" -> "Built in". */
+function humanize(key) {
+  const words = String(key).replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[_-]+/g, ' ').toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
 function renderHoodTab(d, r) {
   const rep = state.reports[d.id];
   if (!rep) {
@@ -395,27 +452,36 @@ function renderHoodTab(d, r) {
       })
       .catch((err) => toast(err.message));
   }
+  const usb = (d.source ?? 'usb') === 'usb';
   const facts = [
-    ['USB ID', `${d.vendorId}:${d.productId}`],
+    ...(usb ? [['USB ID', `${d.vendorId}:${d.productId}`]] : [['Found via', sourceLabel(d.source)]]),
     ['Vendor', d.vendorName ?? '—'],
     ['Product', d.productName ?? '—'],
     ['Serial', d.serial ?? '—'],
-    ['Connected at', d.location ?? '—'],
-    ['Drivers', d.driver.names.join(', ') || (d.driver.bound === false ? 'none' : 'unknown')],
+    ...(usb ? [['Connected at', d.location ?? '—']] : []),
+    ...(usb && d.driver ? [['Drivers', d.driver.names.join(', ') || (d.driver.bound === false ? 'none' : 'unknown')]] : []),
+    ...(r?.support ? [['Support', r.support.label]] : []),
     ...(r?.facts?.deviceId ? [['IEEE 1284 ID', r.facts.deviceId]] : []),
     ...(r?.facts?.commandSet ? [['Printer languages', r.facts.commandSet.join(', ')]] : []),
     ...(r?.facts?.ports?.length ? [['Ports', r.facts.ports.join(', ')]] : []),
+    ...Object.entries(d.details ?? {})
+      .filter(([, v]) => v != null && v !== '' && !(Array.isArray(v) && v.length === 0))
+      .map(([k, v]) => [humanize(k), typeof v === 'object' ? JSON.stringify(v) : String(v)]),
   ];
   return [
-    h('p', { class: 'muted' }, 'What the operating system reports about this device. This is where reverse engineering starts: the IDs say which chip or model it really is, the interface classes say what it claims to be, and the drivers say who answered.'),
+    h('p', { class: 'muted' }, usb
+      ? 'What the operating system reports about this device. This is where reverse engineering starts: the IDs say which chip or model it really is, the interface classes say what it claims to be, and the drivers say who answered.'
+      : 'What your computer can see about this device.'),
     h('table', { class: 'facts' }, facts.map(([k, v]) => h('tr', {}, h('th', {}, k), h('td', {}, v)))),
-    h('h2', {}, 'Interfaces'),
-    h(
-      'table',
-      { class: 'facts mono' },
-      h('tr', {}, h('th', {}, '#'), h('th', {}, 'Class'), h('th', {}, 'Sub'), h('th', {}, 'Proto'), h('th', {}, 'Driver')),
-      d.interfaces.map((i) => h('tr', {}, h('td', {}, i.number ?? '?'), h('td', {}, i.class ?? '??'), h('td', {}, i.subclass ?? '??'), h('td', {}, i.protocol ?? '??'), h('td', {}, i.driver ?? '—'))),
-    ),
+    usb ? h('h2', {}, 'Interfaces') : null,
+    usb
+      ? h(
+          'table',
+          { class: 'facts mono' },
+          h('tr', {}, h('th', {}, '#'), h('th', {}, 'Class'), h('th', {}, 'Sub'), h('th', {}, 'Proto'), h('th', {}, 'Name'), h('th', {}, 'Driver')),
+          d.interfaces.map((i) => h('tr', {}, h('td', {}, i.number ?? '?'), h('td', {}, i.class ?? '??'), h('td', {}, i.subclass ?? '??'), h('td', {}, i.protocol ?? '??'), h('td', {}, i.name ?? '—'), h('td', {}, i.driver ?? '—'))),
+        )
+      : null,
     h('h2', {}, 'Device report'),
     h('p', { class: 'muted' }, 'Share this when asking for help or contributing a recipe. It contains no personal files, only what is listed here.'),
     h(
@@ -437,6 +503,7 @@ async function openSettings() {
   form.autoFix.checked = s.autoFix;
   form.assistantEnabled.checked = s.assistantEnabled;
   form.webResearch.checked = s.webResearch;
+  form.scanNetwork.checked = s.scanNetwork;
   form.apiKey.value = '';
   $('#key-status').textContent = s.hasApiKey ? '(saved — leave empty to keep it)' : '(not set)';
   $('#settings-error').hidden = true;
@@ -447,7 +514,7 @@ $('#settings-form').addEventListener('submit', async (e) => {
   if (e.submitter?.value !== 'save') return;
   e.preventDefault();
   const form = e.target;
-  const patch = { autoFix: form.autoFix.checked, assistantEnabled: form.assistantEnabled.checked, webResearch: form.webResearch.checked };
+  const patch = { autoFix: form.autoFix.checked, assistantEnabled: form.assistantEnabled.checked, webResearch: form.webResearch.checked, scanNetwork: form.scanNetwork.checked };
   if (form.apiKey.value.trim()) patch.apiKey = form.apiKey.value.trim();
   try {
     state.settings = await plugDoctor.updateSettings(patch);
@@ -548,7 +615,8 @@ document.body.dataset.platform = plugDoctor.platform;
 
 (async () => {
   state.settings = await plugDoctor.getSettings();
-  const { devices, diagnoses } = await plugDoctor.listDevices();
+  const { devices, diagnoses, sources } = await plugDoctor.listDevices();
+  if (sources?.length) state.sources = sources;
   state.devices = devices;
   state.diagnoses = diagnoses;
   if (devices.length) state.selected = devices[0].id;

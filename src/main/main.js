@@ -2,7 +2,8 @@
 
 const path = require('node:path');
 const { app, BrowserWindow, ipcMain, shell, clipboard, Notification, Tray, Menu, nativeImage } = require('electron');
-const { UsbWatcher } = require('../core/usb/watcher');
+const { DeviceWatcher } = require('../core/usb/watcher');
+const { createInventory } = require('../core/sources');
 const { diagnose } = require('../core/diagnose');
 const { runPlan } = require('../core/fix/runner');
 const report = require('../core/report');
@@ -19,7 +20,12 @@ let quitting = false;
 // `npm run demo` (or PLUG_DOCTOR_DEMO=1) swaps the real system for simulated devices.
 const demo = process.argv.includes('--demo') || process.env.PLUG_DOCTOR_DEMO ? createDemo() : null;
 const sys = demo ? { run: demo.run, platform: demo.platform } : {};
-const watcher = new UsbWatcher(demo ? { list: demo.list } : {});
+// USB, screens, Bluetooth and the home network, each refreshed at its own pace.
+const inventory = createInventory({
+  ctx: sys,
+  isEnabled: (id) => id !== 'network' || settings.load().scanNetwork,
+});
+const watcher = new DeviceWatcher({ list: demo ? demo.list : inventory.list });
 const diagnoses = new Map(); // deviceId -> latest diagnosis
 const inFlight = new Map(); // deviceId -> Promise<diagnosis>
 const fixing = new Set(); // deviceIds with a fix running
@@ -93,16 +99,22 @@ function notify(title, body) {
 
 /** The heart of "plug it in and it works". */
 async function onAttach(device) {
-  const name = [device.vendorName, device.productName].filter(Boolean).join(' ');
+  const name = device.displayName ?? [device.vendorName, device.productName].filter(Boolean).join(' ');
   let r;
   try {
     r = await diagnoseById(device.id);
   } catch {
     return;
   }
+  // Things you physically plug in (USB, a screen) get notifications. A TV
+  // switching on or headphones connecting should not pop up anything.
+  const plugged = device.source === 'usb' || device.source === 'display';
+  if (!plugged) return;
   const best = r.plans[0];
   if (r.status === 'ok') return notify(`${name} is ready`, r.headline);
-  if (best && settings.load().autoFix && autoEligible(best) && !autoFixed.has(device.id)) {
+  // Only fix automatically what was just plugged in by hand: never add every
+  // printer found on an office network behind someone's back.
+  if (best && device.source === 'usb' && settings.load().autoFix && autoEligible(best) && !autoFixed.has(device.id)) {
     autoFixed.add(device.id);
     notify(`Setting up ${name}`, best.title);
     const outcome = await applyPlan(device.id, best).catch(() => ({ ok: false }));
@@ -187,7 +199,11 @@ function getAssistant() {
 }
 
 function registerIpc() {
-  ipcMain.handle('devices:list', () => ({ devices: watcher.snapshot(), diagnoses: Object.fromEntries(diagnoses) }));
+  ipcMain.handle('devices:list', () => ({
+    devices: watcher.snapshot(),
+    diagnoses: Object.fromEntries(diagnoses),
+    sources: inventory.sources.map((s) => ({ id: s.id, label: s.label })),
+  }));
   ipcMain.handle('devices:diagnose', (_e, id) => diagnoseById(String(id)));
   ipcMain.handle('fix:run', async (_e, deviceId, planId) => {
     // Never trust a plan from the page: look it up from our own diagnosis.
@@ -243,6 +259,9 @@ if (!app.requestSingleInstanceLock()) {
     createTray();
     watcher.on('change', (devices) => send('devices', devices));
     watcher.on('attach', (d) => onAttach(d));
+    watcher.on('update', (d) => {
+      if (!fixing.has(d.id)) diagnoseById(d.id).catch(() => {});
+    });
     watcher.on('detach', (d) => {
       diagnoses.delete(d.id);
       autoFixed.delete(d.id);

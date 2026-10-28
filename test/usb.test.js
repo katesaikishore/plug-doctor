@@ -93,3 +93,16 @@ test('display names do not repeat the vendor', () => {
   assert.equal(displayName('Brother', 'HL-L2350DW series'), 'Brother HL-L2350DW series');
   assert.equal(displayName(null, 'USB2.0-Serial'), 'USB2.0-Serial');
 });
+
+test('watcher emits update when a device changes state', async () => {
+  let list = [{ id: 'hp', driver: { bound: false }, details: { connected: false } }];
+  const w = new UsbWatcher({ list: async () => list, intervalMs: 10_000 });
+  const updates = [];
+  w.on('update', (d) => updates.push(d.details.connected));
+  await w.start({ silentInitial: true });
+  list = [{ id: 'hp', driver: { bound: false }, details: { connected: true } }];
+  await w.poll();
+  await w.poll();
+  w.stop();
+  assert.deepEqual(updates, [true]);
+});

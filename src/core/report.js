@@ -16,6 +16,9 @@ function interfaceLine(i) {
 
 /** Raw descriptor dump from the OS, when a tool for it exists. */
 async function rawDescriptors(device, { platform = process.platform, run = defaultRun } = {}) {
+  if ((device.source ?? 'usb') !== 'usb') {
+    return { tool: `${device.source} details`, text: JSON.stringify({ details: device.details ?? {}, raw: device.raw ?? {} }, null, 2) };
+  }
   if (platform === 'linux') {
     const res = await run('lsusb', ['-v', '-d', `${device.vendorId}:${device.productId}`]);
     if (res.ok) return { tool: 'lsusb -v', text: res.stdout };
@@ -50,20 +53,22 @@ const CAPTURE_GUIDE = {
 function buildMarkdown(device, diagnosis, descriptors) {
   const vid = device.vendorId;
   const pid = device.productId;
+  const usb = (device.source ?? 'usb') === 'usb';
+  const platform = device.platform ?? process.platform;
   const lines = [
-    `## Device report: ${diagnosis?.title ?? device.productName}`,
+    `## Device report: ${diagnosis?.title ?? device.displayName ?? device.productName}`,
     '',
-    `- USB ID: \`${vid}:${pid}\``,
+    usb ? `- USB ID: \`${vid}:${pid}\`` : `- Found via: ${device.source}`,
     `- Vendor: ${device.vendorName ?? 'unknown'}`,
     `- Product: ${device.productName ?? 'unknown'}`,
-    `- Platform: ${device.platform}`,
-    `- Category: ${diagnosis?.category ?? device.categories.join(', ')}`,
+    `- Platform: ${platform}`,
+    `- Category: ${diagnosis?.category ?? (device.categories ?? []).join(', ')}`,
     `- Status: ${diagnosis?.status ?? 'unknown'} - ${diagnosis?.headline ?? ''}`,
-    '',
-    '### Interfaces',
-    '',
-    ...(device.interfaces.length ? device.interfaces.map((i) => `- ${interfaceLine(i)}`) : ['- (none reported)']),
+    ...(diagnosis?.support ? [`- Support: ${diagnosis.support.label}`] : []),
   ];
+  if (usb) {
+    lines.push('', '### Interfaces', '', ...(device.interfaces?.length ? device.interfaces.map((i) => `- ${interfaceLine(i)}`) : ['- (none reported)']));
+  }
   if (diagnosis?.facts?.deviceId) {
     lines.push('', '### IEEE 1284 device ID', '', '```', diagnosis.facts.deviceId, '```');
   }
@@ -71,9 +76,9 @@ function buildMarkdown(device, diagnosis, descriptors) {
     lines.push('', '### Checks', '', ...diagnosis.checks.map((c) => `- [${c.status}] ${c.label}${c.detail ? ': ' + c.detail : ''}`));
   }
   if (descriptors?.text) {
-    lines.push('', `<details><summary>Raw descriptors (${descriptors.tool})</summary>`, '', '```', descriptors.text.slice(0, 20000), '```', '', '</details>');
+    lines.push('', `<details><summary>Raw data (${descriptors.tool})</summary>`, '', '```', descriptors.text.slice(0, 20000), '```', '', '</details>');
   }
-  const guide = CAPTURE_GUIDE[device.platform] ?? [];
+  const guide = usb ? CAPTURE_GUIDE[platform] ?? [] : [];
   if (guide.length) {
     lines.push('', '### How to capture its USB traffic', '', ...guide.map((g) => `1. ${g.replace('{vid}', vid).replace('{pid}', pid)}`));
   }
@@ -82,7 +87,8 @@ function buildMarkdown(device, diagnosis, descriptors) {
 
 /** Pre-filled "new issue" URL for the project's device-report template. */
 function issueUrl(device, repo = 'katesaikishore/plug-doctor') {
-  const title = `Device: ${device.vendorName ?? ''} ${device.productName ?? ''} (${device.vendorId}:${device.productId})`.replace(/\s+/g, ' ');
+  const id = device.vendorId ? ` (${device.vendorId}:${device.productId})` : ` (${device.source})`;
+  const title = `Device: ${device.displayName ?? `${device.vendorName ?? ''} ${device.productName ?? ''}`}${id}`.replace(/\s+/g, ' ');
   const params = new URLSearchParams({ template: 'device-report.yml', title, labels: 'device-report' });
   return `https://github.com/${repo}/issues/new?${params}`;
 }

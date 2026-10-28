@@ -4,16 +4,20 @@ const { EventEmitter } = require('node:events');
 const { listDevices } = require('./index');
 
 /**
- * Polls the device list and emits `attach` / `detach` / `change` events.
+ * Polls the device list (USB by default, or any combined inventory from
+ * src/core/sources) and emits `attach` / `detach` / `change` events.
  * Polling (instead of libusb hotplug) keeps the app free of native modules,
  * so it installs on any machine without a compiler.
  *
  * Events:
  *   attach (device)        a device appeared
  *   detach (device)        a device went away
+ *   update (device)        a device's state changed (driver, problem, details)
  *   change (devices[])     the list changed in any way
  *   error  (err)
  */
+const signature = (d) => JSON.stringify([d.driver ?? null, d.problem ?? null, d.details ?? null]);
+
 class UsbWatcher extends EventEmitter {
   /** @param {{ intervalMs?: number, list?: () => Promise<any[]> }} [opts] */
   constructor(opts = {}) {
@@ -54,8 +58,10 @@ class UsbWatcher extends EventEmitter {
         if (!this.devices.has(id)) {
           changed = true;
           if (!silent) this.emit('attach', dev);
-        } else if (JSON.stringify(this.devices.get(id).driver) !== JSON.stringify(dev.driver)) {
-          changed = true; // a driver got bound or unbound
+        } else if (signature(this.devices.get(id)) !== signature(dev)) {
+          // A driver got bound, headphones connected, a screen changed mode...
+          changed = true;
+          if (!silent) this.emit('update', dev);
         }
       }
       for (const [id, dev] of this.devices) {
@@ -74,4 +80,5 @@ class UsbWatcher extends EventEmitter {
   }
 }
 
-module.exports = { UsbWatcher };
+/** The watcher is not USB-specific any more; DeviceWatcher is the honest name. */
+module.exports = { UsbWatcher, DeviceWatcher: UsbWatcher };

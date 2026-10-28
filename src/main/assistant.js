@@ -27,6 +27,12 @@ const PROBES = {
     printer_drivers: () => ['lpinfo', ['-m']],
     disks: () => ['lsblk', ['-o', 'NAME,TRAN,FSTYPE,MOUNTPOINT,SIZE,MODEL,SERIAL,LABEL']],
     os_version: () => ['cat', ['/etc/os-release']],
+    displays: () => ['xrandr', ['--query']],
+    bluetooth: () => ['bluetoothctl', ['show']],
+    radio_switches: () => ['rfkill', ['list']],
+    audio_devices: () => ['aplay', ['-l']],
+    scanners: () => ['scanimage', ['-L']],
+    network_interfaces: () => ['ip', ['-o', 'addr']],
     installed_packages: () => ['sh', ['-c', 'dpkg -l 2>/dev/null || rpm -qa 2>/dev/null || pacman -Q 2>/dev/null']],
   },
   darwin: {
@@ -39,12 +45,21 @@ const PROBES = {
     printer_drivers: () => ['lpinfo', ['-m']],
     disks: () => ['diskutil', ['list', 'external']],
     os_version: () => ['sw_vers', []],
+    hardware: () => ['system_profiler', ['SPHardwareDataType']],
+    displays: () => ['system_profiler', ['SPDisplaysDataType']],
+    bluetooth: () => ['system_profiler', ['SPBluetoothDataType']],
+    audio_devices: () => ['system_profiler', ['SPAudioDataType']],
+    network_interfaces: () => ['ifconfig', []],
   },
   win32: {
     pnp_devices: () => ['powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', PNP_SCRIPT]],
     printers: () => ['powershell.exe', ['-NoProfile', '-Command', 'Get-Printer | Format-List Name,DriverName,PortName,PrinterStatus; Get-PrinterDriver | Format-List Name,Manufacturer']],
     driver_store: () => ['pnputil', ['/enum-drivers']],
     os_version: () => ['powershell.exe', ['-NoProfile', '-Command', '(Get-CimInstance Win32_OperatingSystem) | Format-List Caption,Version,OSArchitecture']],
+    displays: () => ['powershell.exe', ['-NoProfile', '-Command', 'Get-CimInstance Win32_VideoController | Format-List Name,CurrentHorizontalResolution,CurrentVerticalResolution,CurrentRefreshRate']],
+    bluetooth: () => ['powershell.exe', ['-NoProfile', '-Command', 'Get-PnpDevice -Class Bluetooth | Format-List FriendlyName,Status,InstanceId']],
+    audio_devices: () => ['powershell.exe', ['-NoProfile', '-Command', 'Get-PnpDevice -Class AudioEndpoint,MEDIA | Format-List FriendlyName,Status']],
+    network_interfaces: () => ['powershell.exe', ['-NoProfile', '-Command', 'Get-NetAdapter | Format-List Name,InterfaceDescription,Status,LinkSpeed']],
   },
 };
 
@@ -61,12 +76,13 @@ function clip(text, filter) {
 
 function systemPrompt(platform, webResearch = true) {
   const os = { darwin: 'macOS', win32: 'Windows', linux: 'Linux' }[platform] ?? platform;
-  return `You are the troubleshooting assistant inside Plug Doctor, a free, open-source desktop app whose promise is: plug a USB device in and it just works. You are running on the person's own ${os} computer.
+  return `You are the troubleshooting assistant inside Plug Doctor, a free, open-source desktop app whose promise is: plug a device in (USB, a screen or TV, Bluetooth, something on the home network) and it just works. You are running on the person's own ${os} computer.
 
-The people you help are usually not technical. They plugged in a printer, a serial adapter, a drive or a gadget and it does not work. Write plainly, in short paragraphs, and explain any jargon you cannot avoid. Lead with what you found and what you will do; keep the investigation details brief unless they ask.
+The people you help are usually not technical. They plugged in a printer, a phone, a screen or TV, headphones, a drive or a gadget and it does not work. Write plainly, in short paragraphs, and explain any jargon you cannot avoid. Lead with what you found and what you will do; keep the investigation details brief unless they ask.
 
 How to work:
-- Start from facts, not guesses. Use diagnose_device and run_probe to see what the operating system sees: USB IDs, interface classes, which driver claimed it, the printer's IEEE 1284 command set, kernel messages.
+- Start from facts, not guesses. Use diagnose_device and run_probe to see what the operating system sees: USB IDs, interface classes, which driver claimed it, the printer's IEEE 1284 command set, display modes, Bluetooth state, kernel messages. Each diagnosis includes a support verdict (native, app, vendor-driver, unsupported).
+- Be honest about hard limits. On Macs with Apple silicon, third-party kernel drivers only load after lowering the Mac's security: never suggest that. Prefer what works without it (built-in support, software that runs as a normal app, user-space drivers); when nothing does, say so and suggest a device that works.
 - Think like a reverse engineer. The vendor:product ID identifies the chip or model; the interface class says what kind of device it claims to be; a printer's command set says which generic driver can drive it. Many "unsupported" devices work with a generic or open-source driver once you know what they really are.
 ${webResearch ? "- Use web search to find drivers, known issues and community fixes when the local facts are not enough. Prefer official vendor pages, OpenPrinting, distribution wikis and the projects' own repositories.\n" : ''}- To change anything, call propose_fix. The person sees every command and must approve it, and the operating system asks for their password when a step needs administrator rights. You may only use these programs: ${[...AI_ALLOWED_PROGRAMS].join(', ')}. Choose the least invasive fix that will work; never remove software.
 - If the fix needs something outside that list (a vendor installer, a firmware download, a setting in System Settings), give clear numbered steps for the person to do themselves.
@@ -115,19 +131,21 @@ class Assistant {
       strict(
         betaTool({
           name: 'list_devices',
-          description: 'List the USB devices plugged into this computer right now, with their IDs, names, categories and driver status.',
+          description: 'List the devices Plug Doctor can see right now (USB, screens, Bluetooth, home network), with their IDs, names, categories and driver status.',
           inputSchema: { type: 'object', properties: {}, additionalProperties: false },
           run: async () =>
             JSON.stringify(
               this.deps.getDevices().map((d) => ({
                 device_id: d.id,
-                usb_id: `${d.vendorId}:${d.productId}`,
+                source: d.source ?? 'usb',
+                usb_id: d.vendorId ? `${d.vendorId}:${d.productId}` : undefined,
+                details: d.details,
                 vendor: d.vendorName,
                 product: d.productName,
                 categories: d.categories,
                 driver: d.driver,
                 problem: d.problem,
-                interfaces: d.interfaces.map(({ nodes, ...i }) => i),
+                interfaces: (d.interfaces ?? []).map(({ nodes, ...i }) => i),
               })),
             ),
         }),
@@ -288,7 +306,8 @@ class Assistant {
     const device = deviceId ? this.findDevice(deviceId) : null;
     if (device) {
       const diagnosis = await this.deps.diagnoseDevice(device.id).catch(() => null);
-      content = `[The person is looking at device ${device.id}: ${device.vendorName ?? ''} ${device.productName ?? ''} (USB ${device.vendorId}:${device.productId}). Latest Plug Doctor diagnosis: ${JSON.stringify(diagnosis)}]\n\n${text}`;
+      const where = device.vendorId ? `USB ${device.vendorId}:${device.productId}` : `found via ${device.source}`;
+      content = `[The person is looking at device ${device.id}: ${device.displayName ?? device.productName ?? ''} (${where}). Latest Plug Doctor diagnosis: ${JSON.stringify(diagnosis)}]\n\n${text}`;
     }
     const history = [...this.messages, { role: 'user', content }];
 

@@ -13,16 +13,21 @@
  */
 
 const readline = require('node:readline/promises');
-const { listDevices } = require('../src/core/usb');
-const { UsbWatcher } = require('../src/core/usb/watcher');
+const { createInventory } = require('../src/core/sources');
+const { DeviceWatcher } = require('../src/core/usb/watcher');
 const { diagnose } = require('../src/core/diagnose');
 const { runPlan, describe } = require('../src/core/fix/runner');
 const report = require('../src/core/report');
 
 const ICON = { pass: '✔', warn: '!', fail: '✘', info: '·', ok: '✔', 'needs-fix': '!', broken: '✘', unknown: '?' };
 
+// --no-network skips the home-network scan (it takes a few seconds).
+const inventory = createInventory({ isEnabled: (id) => id !== 'network' || !process.argv.includes('--no-network') });
+const listDevices = () => inventory.list();
+
 function label(d) {
-  return `${d.vendorId}:${d.productId}  ${d.displayName}  [${d.categories.join(', ')}]`;
+  const where = d.vendorId ? `${d.vendorId}:${d.productId}` : d.source;
+  return `${where.padEnd(9)}  ${d.displayName}  [${(d.categories ?? []).join(', ')}]`;
 }
 
 async function pick(query) {
@@ -33,8 +38,9 @@ async function pick(query) {
 }
 
 function printDiagnosis(r) {
-  console.log(`\n${ICON[r.status]} ${r.title}  (${r.category})`);
+  console.log(`\n${ICON[r.status]} ${r.title}  (${r.categoryLabel ?? r.category})`);
   console.log(`  ${r.headline}`);
+  if (r.support) console.log(`  Support: ${r.support.label}${r.support.note ? ' - ' + r.support.note : ''}`);
   for (const c of r.checks) console.log(`   ${ICON[c.status]} ${c.label}${c.detail ? ' - ' + c.detail : ''}`);
   r.plans.forEach((p, i) => {
     console.log(`  Fix ${i + 1}: ${p.title}  (confidence ${Math.round(p.confidence * 100)}%)`);
@@ -45,16 +51,16 @@ function printDiagnosis(r) {
 }
 
 async function main(argv) {
-  const [cmd = 'list', target, extra] = argv;
+  const [cmd = 'list', target, extra] = argv.filter((a) => !a.startsWith('--'));
   if (cmd === 'list') {
     const devices = await listDevices();
-    if (devices.length === 0) console.log('No USB devices found.');
+    if (devices.length === 0) console.log('No devices found.');
     for (const d of devices) console.log(label(d));
     return 0;
   }
   if (cmd === 'diagnose') {
     const devices = await pick(target);
-    if (devices.length === 0) console.log('No matching USB devices.');
+    if (devices.length === 0) console.log('No matching devices.');
     for (const d of devices) printDiagnosis(await diagnose(d));
     return 0;
   }
@@ -90,7 +96,7 @@ async function main(argv) {
     return outcome.ok ? 0 : 1;
   }
   if (cmd === 'watch') {
-    const w = new UsbWatcher();
+    const w = new DeviceWatcher({ list: listDevices });
     w.on('attach', async (d) => {
       console.log(`+ ${label(d)}`);
       printDiagnosis(await diagnose(d));
@@ -100,7 +106,7 @@ async function main(argv) {
     console.log('Watching for USB devices. Plug something in (Ctrl+C to stop).');
     return new Promise(() => {});
   }
-  console.log('usage: plug-doctor [list | diagnose [device] | fix <device> [plan#] | report <device> | watch]');
+  console.log('usage: plug-doctor [list | diagnose [device] | fix <device> [plan#] | report <device> | watch] [--no-network]');
   return 2;
 }
 

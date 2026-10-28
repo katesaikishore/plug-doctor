@@ -16,13 +16,12 @@
         <span class="logo" aria-hidden="true"></span>
         <span class="brand-name">Plug Doctor</span>
       </div>
-      <div class="watching" id="watching"><span class="pulse"></span>Watching your USB ports</div>
+      <div class="watching" id="watching"><span class="pulse"></span>Watching for devices</div>
       <button class="icon-btn" id="open-settings" title="Settings" aria-label="Settings"></button>
     </header>
 
     <div class="layout">
       <aside class="sidebar">
-        <h2>Plugged in</h2>
         <ul id="device-list" class="device-list"></ul>
       </aside>
       <main id="detail" class="detail"></main>
@@ -50,6 +49,13 @@
           <span>
             <strong>Let the assistant search the web</strong>
             <small>For finding drivers and known fixes.</small>
+          </span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" name="scanNetwork" />
+          <span>
+            <strong>Find devices on my network</strong>
+            <small>Smart TVs, AirPlay and Chromecast receivers, network printers and scanners. Nothing leaves your home network. macOS may ask you to allow this once.</small>
           </span>
         </label>
         <label class="field">

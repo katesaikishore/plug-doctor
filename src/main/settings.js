@@ -13,6 +13,7 @@ const DEFAULTS = {
   autoFix: true,
   assistantEnabled: true,
   webResearch: true,
+  scanNetwork: true,
   apiKeyEncrypted: null,
 };
 
@@ -41,7 +42,7 @@ function publicView(s = load()) {
 
 function update(patch) {
   const s = load();
-  for (const key of ['autoFix', 'assistantEnabled', 'webResearch']) {
+  for (const key of ['autoFix', 'assistantEnabled', 'webResearch', 'scanNetwork']) {
     if (typeof patch[key] === 'boolean') s[key] = patch[key];
   }
   if (typeof patch.apiKey === 'string') {

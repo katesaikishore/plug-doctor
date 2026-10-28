@@ -90,7 +90,7 @@ a { color: var(--accent); }
 /* layout */
 .layout { flex: 1; display: grid; grid-template-columns: 280px 1fr; min-height: 0; }
 .sidebar { border-right: 1px solid var(--border); padding: 4px 10px; overflow: hidden auto; background: var(--panel); min-width: 0; }
-.sidebar h2 { margin: 14px 8px 8px; }
+.group-title { margin: 14px 8px 4px; font-size: 11.5px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
 .device-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; grid-template-columns: minmax(0, 1fr); }
 .device-item {
   width: 100%; display: flex; align-items: center; gap: 10px; text-align: left;
@@ -126,6 +126,13 @@ a { color: var(--accent); }
 .device-title { flex: 1; min-width: 0; }
 .device-title h1 { overflow-wrap: anywhere; }
 .headline { font-size: 15px; color: var(--muted); }
+.support { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 550; margin-top: 8px; padding: 3px 10px 3px 8px; border-radius: 999px; background: var(--panel-2); color: var(--muted); max-width: 100%; }
+.support-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
+.support-note { font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.support.native { background: var(--ok-soft); color: var(--ok); }
+.support.app { background: var(--accent-soft); color: var(--accent); }
+.support.vendor-driver { background: var(--warn-soft); color: var(--warn); }
+.support.unsupported { background: var(--bad-soft); color: var(--bad); }
 .head-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 .eyebrow { font-size: 11.5px; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 0 0 4px; }
 .eyebrow.accent { color: var(--accent); }
