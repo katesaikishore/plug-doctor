@@ -1,10 +1,13 @@
 name: Release
 
-# Push a tag such as v0.1.0 to build the installers on macOS, Windows and Linux.
-# They are attached to a DRAFT GitHub release: look it over, then publish it.
+# Push a tag such as v0.1.0, or run this workflow by hand from the Actions tab,
+# to build the installers on macOS, Windows and Linux. A manual run creates the
+# tag for the version in package.json at the commit it runs on.
+# The installers are attached to a DRAFT GitHub release: look it over, then publish it.
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -17,9 +20,15 @@ jobs:
       - name: The tag must match the version in package.json
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
-            echo "Tag $GITHUB_REF_NAME does not match package.json version $VERSION"
-            exit 1
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
+              echo "Tag $GITHUB_REF_NAME does not match package.json version $VERSION"
+              exit 1
+            fi
+          elif ! git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null; then
+            # Started by hand: create the version's tag at the commit being built.
+            git tag "v$VERSION" "$GITHUB_SHA"
+            git push origin "v$VERSION"
           fi
 
   build:
