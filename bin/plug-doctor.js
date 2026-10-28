@@ -19,7 +19,7 @@ const { diagnose } = require('../src/core/diagnose');
 const { runPlan, describe } = require('../src/core/fix/runner');
 const report = require('../src/core/report');
 
-const ICON = { pass: '✔', warn: '!', fail: '✘', info: '·', ok: '✔', 'needs-fix': '!', broken: '✘', unknown: '?' };
+const ICON = { pass: '✔', warn: '!', fail: '✘', info: '·', ok: '✔', 'needs-fix': '!', broken: '✘', unknown: '?', idle: '·' };
 
 // --no-network skips the home-network scan (it takes a few seconds).
 const inventory = createInventory({ isEnabled: (id) => id !== 'network' || !process.argv.includes('--no-network') });

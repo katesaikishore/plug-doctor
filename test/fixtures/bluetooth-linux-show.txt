@@ -1,0 +1,17 @@
+Controller 00:1A:7D:DA:71:13 (public)
+	Name: thinkpad
+	Alias: thinkpad
+	Class: 0x006c010c
+	Powered: yes
+	PowerState: on
+	Discoverable: no
+	DiscoverableTimeout: 0x000000b4
+	Pairable: yes
+	UUID: Generic Attribute Profile (00001801-0000-1000-8000-00805f9b34fb)
+	UUID: Generic Access Profile    (00001800-0000-1000-8000-00805f9b34fb)
+	UUID: A/V Remote Control        (0000110e-0000-1000-8000-00805f9b34fb)
+	UUID: Audio Sink                (0000110b-0000-1000-8000-00805f9b34fb)
+	Modalias: usb:v1D6Bp0246d054C
+	Discovering: no
+	Roles: central
+	Roles: peripheral

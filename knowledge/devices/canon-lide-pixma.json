@@ -1,0 +1,26 @@
+{
+  "id": "canon-lide-pixma",
+  "name": "Canon CanoScan LiDE 300 / LiDE 400",
+  "category": "scanner",
+  "match": {
+    "usb": ["04a9:1913", "04a9:1912"]
+  },
+  "summary": "Current Canon slim flatbed scanners. On Linux the open-source SANE \"pixma\" backend drives them, so no Canon software is needed.",
+  "confidence": 0.9,
+  "platforms": {
+    "linux": {
+      "packages": { "apt": ["sane-utils"], "dnf": ["sane-backends"], "pacman": ["sane"] },
+      "notes": "Supported by SANE's pixma backend (marked as tested by the SANE project), which comes with the standard SANE packages. Older distributions may ship a SANE version from before these models were added. This recipe has not yet been tested on hardware by Plug Doctor."
+    },
+    "darwin": {
+      "notes": "Canon publishes macOS drivers and scanning software for these models on its support site; check that the download lists your macOS version."
+    },
+    "win32": {
+      "notes": "Canon publishes Windows drivers and scanning software for these models on its support site."
+    }
+  },
+  "sources": [
+    "http://www.sane-project.org/sane-mfgs.html",
+    "https://gitlab.com/sane-project/backends/-/blob/master/backend/pixma/pixma_mp150.c"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "SPBluetoothDataType" : [
+    {
+      "controller_properties" : {
+        "controller_address" : "F0:B3:EC:1A:2B:3C",
+        "controller_chipset" : "BCM_4387",
+        "controller_state" : "attrib_off",
+        "controller_transport" : "PCIe"
+      },
+      "device_not_connected" : [
+        {
+          "AirPods Pro" : {
+            "device_address" : "AC:90:85:4D:5E:6F",
+            "device_minorType" : "Headphones",
+            "device_productID" : "0x2014",
+            "device_vendorID" : "0x004C"
+          }
+        }
+      ]
+    }
+  ]
+}

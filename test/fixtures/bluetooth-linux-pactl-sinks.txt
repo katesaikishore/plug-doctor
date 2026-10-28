@@ -1,0 +1,2 @@
+1	alsa_output.pci-0000_00_1f.3.analog-stereo	PipeWire	s32le 2ch 48000Hz	SUSPENDED
+58	bluez_output.AC_90_85_4D_5E_6F.1	PipeWire	s16le 2ch 48000Hz	IDLE

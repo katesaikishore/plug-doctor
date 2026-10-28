@@ -58,7 +58,7 @@ const family = {
   match: (device, ctx) => 0..100,          // 0 = not mine; highest score wins
   userspace: (platform, device) => bool,   // optional: "no kernel driver" is normal
   diagnose: async (device, ctx) => ({
-    status: 'ok' | 'needs-fix' | 'broken' | 'unknown',
+    status: 'ok' | 'needs-fix' | 'broken' | 'unknown' | 'idle',   // idle: fine, just not connected right now
     headline: 'One plain sentence about the state of the device.',
     checks: [check(id, label, 'pass'|'warn'|'fail'|'info', detail)],
     plans: [plan({ id, title, why, confidence, steps, auto })],

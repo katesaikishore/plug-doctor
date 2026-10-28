@@ -1,0 +1,48 @@
+{
+  "SPDisplaysDataType" : [
+    {
+      "_name" : "Apple M1",
+      "spdisplays_mtlgpufamilysupport" : "spdisplays_metal3",
+      "spdisplays_ndrvs" : [
+        {
+          "_name" : "Color LCD",
+          "_spdisplays_display-product-id" : "a045",
+          "_spdisplays_display-serial-number" : "fd626d62",
+          "_spdisplays_display-vendor-id" : "610",
+          "_spdisplays_display-week" : "0",
+          "_spdisplays_display-year" : "0",
+          "_spdisplays_displayID" : "1",
+          "_spdisplays_pixels" : "2880 x 1800",
+          "_spdisplays_resolution" : "1440 x 900 @ 60.00Hz",
+          "spdisplays_ambient_brightness" : "spdisplays_yes",
+          "spdisplays_connection_type" : "spdisplays_internal",
+          "spdisplays_display_type" : "spdisplays_built-in-retina-lcd",
+          "spdisplays_main" : "spdisplays_yes",
+          "spdisplays_mirror" : "spdisplays_off",
+          "spdisplays_online" : "spdisplays_yes",
+          "spdisplays_pixelresolution" : "spdisplays_2560x1600Retina"
+        },
+        {
+          "_name" : "SAMSUNG",
+          "_spdisplays_display-product-id" : "7279",
+          "_spdisplays_display-serial-number" : "1000e00",
+          "_spdisplays_display-vendor-id" : "4c2d",
+          "_spdisplays_display-week" : "1",
+          "_spdisplays_display-year" : "2021",
+          "_spdisplays_displayID" : "3",
+          "_spdisplays_pixels" : "3840 x 2160",
+          "_spdisplays_resolution" : "3840 x 2160 @ 30.00Hz",
+          "spdisplays_mirror" : "spdisplays_off",
+          "spdisplays_online" : "spdisplays_yes",
+          "spdisplays_pixelresolution" : "2160p 4K UHD - Ultra High Definition",
+          "spdisplays_rotation" : "spdisplays_supported"
+        }
+      ],
+      "spdisplays_vendor" : "sppci_vendor_Apple",
+      "sppci_bus" : "spdisplays_builtin",
+      "sppci_cores" : "7",
+      "sppci_device_type" : "spdisplays_gpu",
+      "sppci_model" : "Apple M1"
+    }
+  ]
+}

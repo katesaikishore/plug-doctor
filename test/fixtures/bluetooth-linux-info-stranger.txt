@@ -1,0 +1,11 @@
+Device E4:17:D8:AA:BB:CC (public)
+	Name: Xbox Wireless Controller
+	Alias: Xbox Wireless Controller
+	Icon: input-gaming
+	Paired: no
+	Bonded: no
+	Trusted: no
+	Blocked: no
+	Connected: no
+	LegacyPairing: no
+	RSSI: -78

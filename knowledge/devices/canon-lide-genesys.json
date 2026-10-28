@@ -1,0 +1,26 @@
+{
+  "id": "canon-lide-genesys",
+  "name": "Canon CanoScan LiDE 100 / 110 / 120 / 200 / 210 / 220 / 700F",
+  "category": "scanner",
+  "match": {
+    "usb": ["04a9:1904", "04a9:1905", "04a9:1907", "04a9:1909", "04a9:190a", "04a9:190e", "04a9:190f"]
+  },
+  "summary": "Slim, USB-powered Canon flatbed scanners. On Linux the open-source SANE \"genesys\" backend drives them, so no Canon software is needed.",
+  "confidence": 0.9,
+  "platforms": {
+    "linux": {
+      "packages": { "apt": ["sane-utils"], "dnf": ["sane-backends"], "pacman": ["sane"] },
+      "notes": "Supported by SANE's genesys backend, which comes with the standard SANE packages. Scan with Document Scanner (Simple Scan), Skanlite or XSane. This recipe is based on SANE's device list and has not yet been tested on hardware by Plug Doctor."
+    },
+    "darwin": {
+      "notes": "Canon publishes macOS drivers and scanning software per model on its support site; check that the download lists your macOS version. If it does not, third-party scanning apps such as VueScan support many Canon scanners."
+    },
+    "win32": {
+      "notes": "Canon publishes Windows drivers and scanning software per model on its support site."
+    }
+  },
+  "sources": [
+    "http://www.sane-project.org/sane-mfgs.html",
+    "https://gitlab.com/sane-project/backends/-/blob/master/backend/genesys.conf.in"
+  ]
+}

@@ -50,8 +50,10 @@ async function diagnose(device, ctxIn = {}) {
     result = await generic.diagnose(device, ctx);
   }
 
-  const support = result.support
-    ? verdict(result.support.level, { platform, arch }, result.support.note ?? null)
+  // Families may return a level string or { level, note }.
+  const own = typeof result.support === 'string' ? { level: result.support } : result.support;
+  const support = own?.level
+    ? verdict(own.level, { platform, arch }, own.note ?? null)
     : supportFor(device, { platform, arch, recipes: ctx.recipes });
 
   return {

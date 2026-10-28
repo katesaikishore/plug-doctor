@@ -59,7 +59,7 @@ function iconFor(...keys) {
   return ICONS.unknown;
 }
 
-const STATUS_TEXT = { ok: 'Working', 'needs-fix': 'Needs a fix', broken: 'Not working', unknown: 'Connected', checking: 'Checking…' };
+const STATUS_TEXT = { ok: 'Working', 'needs-fix': 'Needs a fix', broken: 'Not working', unknown: 'Connected', idle: 'Not connected', checking: 'Checking…' };
 const CHECK_MARK = { pass: '✓', warn: '!', fail: '✕', info: 'i' };
 
 // ---------------------------------------------------------------- state

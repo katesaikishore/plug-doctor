@@ -1,0 +1,10 @@
+HTTP/1.1 200 OK
+Cache-Control: max-age=3600
+ST: roku:ecp
+USN: uuid:roku:ecp:YN00AB123456
+Ext: 
+Server: Roku/12.5.0 UPnP/1.0 Roku/12.5.0
+LOCATION: http://192.168.1.52:8060/
+device-group.roku.com: 46F5CCE2472F2B14D77E
+WAKEUP: MAC=d8:31:34:aa:bb:cc;Timeout=10
+

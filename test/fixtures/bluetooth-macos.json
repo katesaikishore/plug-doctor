@@ -1,0 +1,52 @@
+{
+  "SPBluetoothDataType" : [
+    {
+      "controller_properties" : {
+        "controller_address" : "F0:B3:EC:1A:2B:3C",
+        "controller_chipset" : "BCM_4387",
+        "controller_discoverable" : "attrib_off",
+        "controller_firmwareVersion" : "22.1.534.1484",
+        "controller_productID" : "0x4A0C",
+        "controller_state" : "attrib_on",
+        "controller_supportedServices" : "0x392039 < HFP AVRCP A2DP HID Braille LEA AACP GATT SerialPort >",
+        "controller_transport" : "PCIe",
+        "controller_vendorID" : "0x004C (Apple)"
+      },
+      "device_connected" : [
+        {
+          "AirPods Pro" : {
+            "device_address" : "AC:90:85:4D:5E:6F",
+            "device_batteryLevelCase" : "45%",
+            "device_batteryLevelLeft" : "100%",
+            "device_batteryLevelRight" : "98%",
+            "device_caseVersion" : "1.0.0",
+            "device_firmwareVersion" : "6A321",
+            "device_minorType" : "Headphones",
+            "device_productID" : "0x2014",
+            "device_serialNumber" : "H3KXXXXXXXXX",
+            "device_serialNumberLeft" : "GX1XXXXXXXXX",
+            "device_serialNumberRight" : "GX2XXXXXXXXX",
+            "device_services" : "0x980019 < HFP AVRCP A2DP AACP GATT >",
+            "device_vendorID" : "0x004C"
+          }
+        }
+      ],
+      "device_not_connected" : [
+        {
+          "Magic Keyboard" : {
+            "device_address" : "F4:6A:DD:01:23:45",
+            "device_minorType" : "Keyboard",
+            "device_productID" : "0x029C",
+            "device_services" : "0x400020 < HID GATT >",
+            "device_vendorID" : "0x004C"
+          }
+        },
+        {
+          "Kate's iPhone" : {
+            "device_address" : "3C:22:FB:98:76:54"
+          }
+        }
+      ]
+    }
+  ]
+}

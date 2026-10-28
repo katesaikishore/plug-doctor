@@ -1,0 +1,25 @@
+{
+  "id": "displaylink",
+  "name": "DisplayLink USB display adapters and docks",
+  "category": "display",
+  "match": { "vendors": ["17e9"] },
+  "summary": "USB docks and adapters that add screens over USB using Synaptics' DisplayLink software instead of the computer's own video output. Screens on them stay black until that software is installed.",
+  "confidence": 0.8,
+  "support": { "darwin": "vendor-driver", "win32": "vendor-driver", "linux": "vendor-driver" },
+  "platforms": {
+    "darwin": {
+      "notes": "Install Synaptics' free DisplayLink Manager app and allow it Screen Recording in System Settings > Privacy & Security. No kernel extension and no security changes are needed. This is also how base M1 and M2 MacBook Air and 13-inch MacBook Pro models get more than one external screen."
+    },
+    "win32": {
+      "notes": "Windows Update usually installs the DisplayLink driver by itself. If the screens stay black, install the latest driver from Synaptics."
+    },
+    "linux": {
+      "notes": "Synaptics publishes a driver for Ubuntu (it uses the evdi kernel module). Other distributions have community packages. Not tested by Plug Doctor on every distribution."
+    }
+  },
+  "sources": [
+    "https://www.synaptics.com/products/displaylink-graphics/downloads/macos",
+    "https://www.synaptics.com/products/displaylink-graphics/downloads/windows",
+    "https://www.synaptics.com/products/displaylink-graphics/downloads/ubuntu"
+  ]
+}

@@ -1,0 +1,2 @@
+device for HP_LaserJet_1020: usb://HP/LaserJet%201020?serial=FN16VR6
+device for HP_LaserJet_Pro_M404n: ipp://HP-LaserJet-M404n.local:631/ipp/print

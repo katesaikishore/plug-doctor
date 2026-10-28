@@ -1,0 +1,10 @@
+HTTP/1.1 200 OK
+CACHE-CONTROL: max-age=1800
+DATE: Tue, 27 Oct 2026 18:02:11 GMT
+EXT:
+LOCATION: http://192.168.1.40:1468/
+SERVER: WebOS/4.1.0 UPnP/1.0
+ST: urn:schemas-upnp-org:device:MediaRenderer:1
+USN: uuid:7f3c1a52-48d0-4b8e-9f5d-0a1b2c3d4e5f::urn:schemas-upnp-org:device:MediaRenderer:1
+DLNADeviceName.lge.com: %5bLG%5d%20webOS%20TV%20OLED55C1PUB
+

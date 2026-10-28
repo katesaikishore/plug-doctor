@@ -1,0 +1,17 @@
+Device C8:3F:26:11:22:33 (random)
+	Name: MX Master 3
+	Alias: MX Master 3
+	Appearance: 0x03c2
+	Icon: input-mouse
+	Paired: yes
+	Bonded: yes
+	Trusted: no
+	Blocked: no
+	Connected: no
+	LegacyPairing: no
+	UUID: Generic Access Profile    (00001800-0000-1000-8000-00805f9b34fb)
+	UUID: Device Information        (0000180a-0000-1000-8000-00805f9b34fb)
+	UUID: Battery Service           (0000180f-0000-1000-8000-00805f9b34fb)
+	UUID: Human Interface Device    (00001812-0000-1000-8000-00805f9b34fb)
+	Modalias: usb:v046DpB023d0012
+	Battery Percentage: 0x0a (10)

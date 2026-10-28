@@ -107,6 +107,7 @@ a { color: var(--accent); }
 .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
 .dot.ok { background: var(--ok); }
 .dot.needs-fix { background: var(--warn); }
+.dot.idle { background: transparent; box-shadow: inset 0 0 0 1.5px var(--muted); }
 .dot.broken { background: var(--bad); }
 
 .detail { overflow: auto; padding: 24px 32px 48px; }

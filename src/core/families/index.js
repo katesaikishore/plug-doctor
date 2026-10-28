@@ -16,7 +16,7 @@
  * @property {(device: any, ctx: any) => Promise<FamilyResult>} diagnose
  *
  * @typedef {object} FamilyResult
- * @property {'ok'|'needs-fix'|'broken'|'unknown'} status
+ * @property {'ok'|'needs-fix'|'broken'|'unknown'|'idle'} status  idle = fine, just not connected now
  * @property {string} headline
  * @property {any[]} checks
  * @property {any[]} plans
