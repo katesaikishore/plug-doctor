@@ -127,9 +127,8 @@ a { color: var(--accent); }
 .device-title { flex: 1; min-width: 0; }
 .device-title h1 { overflow-wrap: anywhere; }
 .headline { font-size: 15px; color: var(--muted); }
-.support { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 550; margin-top: 8px; padding: 3px 10px 3px 8px; border-radius: 999px; background: var(--panel-2); color: var(--muted); max-width: 100%; }
+.support { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 550; margin-top: 8px; padding: 3px 10px 3px 8px; border-radius: 999px; background: var(--panel-2); color: var(--muted); white-space: nowrap; }
 .support-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
-.support-note { font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .support.native { background: var(--ok-soft); color: var(--ok); }
 .support.app { background: var(--accent-soft); color: var(--accent); }
 .support.vendor-driver { background: var(--warn-soft); color: var(--warn); }

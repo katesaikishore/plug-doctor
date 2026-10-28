@@ -1,0 +1,28 @@
+{
+  "id": "xp-pen-tablets",
+  "name": "XP-Pen drawing tablets and pen displays",
+  "category": "input",
+  "kind": "tablet",
+  "match": { "vendors": ["28bd"] },
+  "summary": "XP-Pen pen tablets and pen displays. Without a driver the pen moves the pointer like a mouse, but pressure and the shortcut buttons do nothing.",
+  "confidence": 0.7,
+  "support": { "darwin": "vendor-driver", "win32": "vendor-driver" },
+  "platforms": {
+    "linux": { "notes": "Many XP-Pen tablets work with Linux's built-in uclogic driver. For full pressure and button support on any Linux distribution, OpenTabletDriver (free, open source) supports most XP-Pen models. XP-Pen also publishes Linux drivers on its website." },
+    "darwin": {
+      "notes": "Install XP-Pen's driver from the Download section of xp-pen.com, or the free and open-source OpenTabletDriver, then allow it in System Settings > Privacy & Security under Accessibility. No security changes are needed.",
+      "steps": [
+        { "kind": "open-url", "title": "Download OpenTabletDriver", "explain": "A free, open-source tablet driver that supports most XP-Pen models. XP-Pen's own driver (Download section of xp-pen.com) works too.", "url": "https://opentabletdriver.net/" },
+        { "kind": "manual", "title": "Allow the driver and replug the tablet", "explain": "When macOS asks, allow the driver in System Settings > Privacy & Security. Then unplug the tablet, plug it back in and press \"Check again\"." }
+      ]
+    },
+    "win32": {
+      "notes": "Install XP-Pen's driver from the Download section of xp-pen.com, or the free and open-source OpenTabletDriver.",
+      "steps": [
+        { "kind": "open-url", "title": "Download OpenTabletDriver", "explain": "A free, open-source tablet driver that supports most XP-Pen models. XP-Pen's own driver (Download section of xp-pen.com) works too.", "url": "https://opentabletdriver.net/" },
+        { "kind": "manual", "title": "Replug the tablet", "explain": "Unplug the tablet, plug it back in and press \"Check again\"." }
+      ]
+    }
+  },
+  "sources": ["https://opentabletdriver.net/"]
+}

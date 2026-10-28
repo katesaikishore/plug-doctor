@@ -1,0 +1,28 @@
+{
+  "id": "nintendo-switch-pro-controller",
+  "name": "Nintendo Switch Pro Controller",
+  "category": "input",
+  "kind": "controller",
+  "match": { "usb": ["057e:2009"] },
+  "summary": "Nintendo's Switch Pro Controller, here connected with a USB cable.",
+  "support": { "linux": "native", "win32": "native", "darwin": "native" },
+  "supportNote": {
+    "darwin": "Supported by macOS's Game Controller framework since macOS Ventura (13). Older macOS versions do not support it.",
+    "win32": "Windows sees it as a standard game controller. Steam's controller support makes it work in most Steam games."
+  },
+  "platforms": {
+    "linux": { "notes": "Built into Linux since kernel 5.16 (hid-nintendo). Steam also supports it directly." },
+    "win32": { "notes": "Windows sees it as a standard game controller. Steam's controller support (Steam Input) makes it work in most Steam games." },
+    "darwin": {
+      "notes": "Supported since macOS Ventura (13), over Bluetooth.",
+      "steps": [
+        {
+          "kind": "manual",
+          "title": "Pair the controller over Bluetooth",
+          "explain": "Unplug the cable. Hold the small sync button on the top of the controller, next to the USB-C port, until the player lights run back and forth. On the Mac open System Settings > Bluetooth and click Connect next to \"Pro Controller\". Then press \"Check again\"."
+        }
+      ]
+    }
+  },
+  "sources": ["https://github.com/torvalds/linux/blob/master/drivers/hid/hid-nintendo.c"]
+}

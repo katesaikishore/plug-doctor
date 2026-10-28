@@ -94,9 +94,14 @@ function sourceLabel(id) {
   return state.sources.find((s) => s.id === id)?.label ?? id;
 }
 
-/** "USB 03f0:2b17" for USB devices, the source's name for everything else. */
-function idLabel(d) {
-  return d.vendorId ? `USB ${d.vendorId}:${d.productId}` : sourceLabel(d.source ?? 'usb');
+/** The line above a device's name: "PRINTER · USB 03f0:2b17", "TV", "PRINTER · ON YOUR NETWORK". */
+function eyebrow(d, r) {
+  const kind = r?.categoryLabel ?? 'Device';
+  if (d.vendorId) return `${kind} · USB ${d.vendorId}:${d.productId}`;
+  const src = sourceLabel(d.source ?? 'usb');
+  // "Screen · Screens" and "Bluetooth device · Bluetooth" say the same thing twice.
+  const stem = src.toLowerCase().split(' ')[0].replace(/s$/, '');
+  return kind.toLowerCase().includes(stem) ? kind : `${kind} · ${src}`;
 }
 
 function statusOf(d) {
@@ -175,10 +180,11 @@ function renderDetail() {
     h(
       'div',
       { class: 'device-title' },
-      h('p', { class: 'eyebrow' }, `${(r?.categoryLabel ?? 'Device').toUpperCase()} · ${idLabel(d)}`),
+      h('p', { class: 'eyebrow' }, eyebrow(d, r).toUpperCase()),
       h('h1', {}, deviceName(d)),
       h('p', { class: 'headline' }, r?.headline ?? 'Checking this device…'),
-      r?.support ? h('p', { class: `support ${r.support.level}`, title: r.support.note ?? '' }, h('span', { class: 'support-dot' }), r.support.label, r.support.note ? h('span', { class: 'support-note' }, ` · ${r.support.note}`) : null) : null,
+      r?.support ? h('p', { class: `support ${r.support.level}`, title: r.support.note ?? '' }, h('span', { class: 'support-dot' }), r.support.label) : null,
+      r?.support?.note && r.support.level !== 'unsupported' ? h('p', { class: 'muted small support-text' }, r.support.note) : null,
     ),
     h('div', { class: 'head-side' }, h('span', { class: `pill ${status}` }, STATUS_TEXT[status]), h('button', { class: 'btn ghost small', onclick: () => recheck(d.id) }, 'Check again')),
   );
@@ -223,7 +229,18 @@ function renderFixTab(d, r) {
   if (r.plans.length) {
     parts.push(h('h2', {}, r.status === 'ok' ? 'Try it' : 'How to fix it'));
     r.plans.forEach((plan, i) => parts.push(renderPlan(d, plan, i === 0, prog?.planId === plan.id ? prog : null)));
-  } else if (r.status !== 'ok') {
+  } else if (r.support?.level === 'unsupported') {
+    parts.push(
+      h(
+        'div',
+        { class: 'card callout' },
+        h('h3', {}, r.support.label),
+        h('p', {}, r.support.note ?? 'There is no driver for this device on this computer.'),
+        h('p', { class: 'muted' }, 'Plug Doctor will not lower your computer\'s security to force it. The assistant can help you find something that works instead.'),
+        h('button', { class: 'btn ghost', onclick: () => ((state.tab = 'assistant'), renderDetail(), sendChat(d, `My ${deviceName(d)} can't work on this computer. What can I use instead?`)) }, 'Ask for alternatives'),
+      ),
+    );
+  } else if (r.status !== 'ok' && r.status !== 'idle') {
     parts.push(
       h(
         'div',

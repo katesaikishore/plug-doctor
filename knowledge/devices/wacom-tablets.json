@@ -1,0 +1,28 @@
+{
+  "id": "wacom-tablets",
+  "name": "Wacom drawing tablets and pen displays",
+  "category": "input",
+  "kind": "tablet",
+  "match": { "vendors": ["056a"] },
+  "summary": "Wacom pen tablets and pen displays. Without Wacom's driver the pen moves the pointer like a mouse, but pressure, tilt and the shortcut buttons do nothing.",
+  "confidence": 0.8,
+  "support": { "linux": "native", "darwin": "vendor-driver", "win32": "vendor-driver" },
+  "platforms": {
+    "linux": { "notes": "Linux has Wacom support built in (the wacom kernel driver and libwacom). GNOME and KDE have tablet settings for the pen and buttons." },
+    "darwin": {
+      "notes": "Install Wacom's driver, then allow it in System Settings > Privacy & Security under Accessibility (and Input Monitoring if asked). No security changes are needed.",
+      "steps": [
+        { "kind": "open-url", "title": "Download the Wacom driver", "explain": "Download the driver for your tablet model and macOS version, and install it.", "url": "https://www.wacom.com/en-us/support/product-support/drivers" },
+        { "kind": "manual", "title": "Allow the driver and replug the tablet", "explain": "When macOS asks, allow the Wacom driver in System Settings > Privacy & Security. Then unplug the tablet, plug it back in and press \"Check again\"." }
+      ]
+    },
+    "win32": {
+      "notes": "Install Wacom's driver for pressure, tilt and the shortcut buttons.",
+      "steps": [
+        { "kind": "open-url", "title": "Download the Wacom driver", "explain": "Download the driver for your tablet model and Windows, and install it.", "url": "https://www.wacom.com/en-us/support/product-support/drivers" },
+        { "kind": "manual", "title": "Replug the tablet", "explain": "Unplug the tablet, plug it back in and press \"Check again\"." }
+      ]
+    }
+  },
+  "sources": ["https://www.wacom.com/en-us/support/product-support/drivers", "https://github.com/linuxwacom/input-wacom"]
+}

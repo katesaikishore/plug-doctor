@@ -1,0 +1,7 @@
+client 0: 'System' [type=kernel]
+    0 'Timer           '
+    1 'Announce        '
+client 14: 'Midi Through' [type=kernel]
+    0 'Midi Through Port-0'
+client 24: 'nanoKONTROL2' [type=kernel,card=2]
+    0 'nanoKONTROL2 nanoKONTROL2 _ CTR'

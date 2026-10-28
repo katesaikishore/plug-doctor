@@ -1,0 +1,13 @@
+{
+  "id": "realtek-rtl8152-rtl8153",
+  "name": "Realtek RTL8152 / RTL8153 USB Ethernet adapters",
+  "category": "network-adapter",
+  "match": { "usb": ["0bda:8152", "0bda:8153"] },
+  "summary": "The Realtek chips inside most cheap USB Ethernet adapters and many USB-C docks: RTL8152 (10/100) and RTL8153 (gigabit).",
+  "platforms": {
+    "linux": { "notes": "Driven by r8152, which is built into Linux. The new network connection shows up with a name like enx followed by the adapter's address." },
+    "darwin": { "notes": "Recent macOS versions use RTL8153 adapters natively in their standard (CDC-ECM) mode. Realtek also published a macOS driver for older versions. Plug Doctor has not confirmed native support for every RTL8152 adapter." },
+    "win32": { "notes": "Windows normally installs the driver by itself, through Windows Update if needed." }
+  },
+  "sources": ["https://github.com/torvalds/linux/blob/master/drivers/net/usb/r8152.c"]
+}

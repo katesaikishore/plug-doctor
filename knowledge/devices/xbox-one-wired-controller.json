@@ -1,0 +1,17 @@
+{
+  "id": "xbox-one-wired-controller",
+  "name": "Microsoft Xbox One controller (original model, no Bluetooth)",
+  "category": "input",
+  "kind": "controller",
+  "match": { "usb": ["045e:02d1", "045e:02dd"] },
+  "summary": "The first Xbox One controllers, which connect with a USB cable or the Xbox Wireless Adapter but have no Bluetooth.",
+  "support": { "linux": "native", "win32": "native", "darwin": "unknown" },
+  "platforms": {
+    "linux": { "notes": "Driven by xpad, which is built into Linux. Steam also supports it directly." },
+    "win32": { "notes": "Windows has the driver built in. If it shows an error, let Windows Update look for the driver." },
+    "darwin": {
+      "notes": "This model has no Bluetooth, and Apple does not document support for it over a cable. If macOS does not see it, a controller with Bluetooth works: the Xbox Wireless Controller (Xbox One S or Series), a DualShock 4, a DualSense or a Switch Pro Controller."
+    }
+  },
+  "sources": ["https://github.com/torvalds/linux/blob/master/drivers/input/joystick/xpad.c"]
+}

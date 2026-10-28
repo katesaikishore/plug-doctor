@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>BusProtocol</key>
+	<string>USB</string>
+	<key>Content</key>
+	<string>Windows_NTFS</string>
+	<key>DeviceIdentifier</key>
+	<string>disk4s1</string>
+	<key>DeviceNode</key>
+	<string>/dev/disk4s1</string>
+	<key>FilesystemName</key>
+	<string>NTFS</string>
+	<key>FilesystemType</key>
+	<string>ntfs</string>
+	<key>FilesystemUserVisibleName</key>
+	<string>Windows NT File System (NTFS)</string>
+	<key>Internal</key>
+	<false/>
+	<key>MediaName</key>
+	<string></string>
+	<key>MountPoint</key>
+	<string>/Volumes/BACKUP</string>
+	<key>ParentWholeDisk</key>
+	<string>disk4</string>
+	<key>Size</key>
+	<integer>1000202043392</integer>
+	<key>VolumeName</key>
+	<string>BACKUP</string>
+	<key>WholeDisk</key>
+	<false/>
+	<key>Writable</key>
+	<false/>
+	<key>WritableVolume</key>
+	<false/>
+</dict>
+</plist>

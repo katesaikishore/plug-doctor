@@ -1,0 +1,2 @@
+Dir Device    Name
+IO  hw:2,0,0  nanoKONTROL2 nanoKONTROL2 _ CTR

@@ -1,0 +1,15 @@
+{
+  "id": "8bitdo-controllers",
+  "name": "8BitDo controllers and adapters",
+  "category": "input",
+  "kind": "controller",
+  "match": { "vendors": ["2dc8"] },
+  "summary": "8BitDo game controllers, arcade sticks and wireless adapters. Most of them can pretend to be different controllers, and which mode they start in decides what works.",
+  "confidence": 0.6,
+  "platforms": {
+    "linux": { "notes": "In Xbox (X-input) mode they use Linux's built-in xpad driver; in other modes the generic HID driver. Steam supports them too. If buttons are mixed up, try the other mode." },
+    "win32": { "notes": "Xbox (X-input) mode works best on Windows because most games expect an Xbox controller. 8BitDo's Ultimate Software can update the firmware." },
+    "darwin": { "notes": "Many 8BitDo controllers have a mode for Apple devices; check your model's manual for the button to hold while switching it on. In Xbox (X-input) mode over a cable, macOS may not see it." }
+  },
+  "sources": ["https://support.8bitdo.com/"]
+}

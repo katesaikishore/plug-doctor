@@ -1,0 +1,13 @@
+{
+  "id": "asix-ax88179",
+  "name": "ASIX AX88179 USB 3 gigabit Ethernet adapters",
+  "category": "network-adapter",
+  "match": { "usb": ["0b95:1790"] },
+  "summary": "A common chip in USB 3 gigabit Ethernet adapters and some docks.",
+  "platforms": {
+    "linux": { "notes": "Driven by ax88179_178a, which is built into Linux." },
+    "darwin": { "notes": "macOS has historically needed ASIX's driver for this chip. Newer revisions of the chip (AX88179A/B) can also work in a standard mode macOS supports. If no network connection appears on your Mac, check ASIX's website for a driver for your macOS version, and do not lower your Mac's security to install one." },
+    "win32": { "notes": "Windows normally installs the driver by itself, through Windows Update if needed." }
+  },
+  "sources": ["https://github.com/torvalds/linux/blob/master/drivers/net/usb/ax88179_178a.c"]
+}

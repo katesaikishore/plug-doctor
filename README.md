@@ -38,7 +38,12 @@ My HP printer had no driver for macOS. With help from Claude I worked out what t
 | **USB drives** | Disks, partitions and filesystems; mounts unmounted volumes; explains limits (a Mac can read but not write NTFS) and never erases anything without you doing it yourself. |
 | **Anything else** | The support verdict, generic driver and error-code checks, and an *Under the hood* report with the raw descriptors and how to capture the device's USB traffic. That is the starting point for reverse engineering it. |
 
-![Fixed](docs/screenshots/fixed.png)
+| | |
+| --- | --- |
+| ![A 4K TV stuck at 30 Hz](docs/screenshots/tv.png) | ![An Android phone on a Mac](docs/screenshots/phone.png) |
+| **Screens and TVs:** a 4K TV stuck at 30 Hz, and how to get 60 Hz. | **Phones:** charge-only mode, and Android file transfer on a Mac. |
+| ![An honest "cannot work on this Mac"](docs/screenshots/unsupported.png) | ![A network printer, no driver needed](docs/screenshots/network-printer.png) |
+| **Honest answers:** no driver exists for Apple silicon, so it says so and names what works. | **Your network:** AirPrint / IPP Everywhere printers set up in one click. |
 
 ## Install
 

@@ -1,0 +1,27 @@
+{
+  "id": "xbox-wireless-controller",
+  "name": "Microsoft Xbox Wireless Controller (Xbox One S and Series)",
+  "category": "input",
+  "kind": "controller",
+  "match": { "usb": ["045e:02ea", "045e:0b12"] },
+  "summary": "The Xbox One S and Xbox Series X|S controllers, here connected with a USB cable. They also have Bluetooth.",
+  "support": { "linux": "native", "win32": "native", "darwin": "native" },
+  "supportNote": {
+    "darwin": "macOS supports this controller through its Game Controller framework. Apple documents it over Bluetooth; if it does not respond over the cable, pair it with Bluetooth."
+  },
+  "platforms": {
+    "linux": { "notes": "Driven by xpad, which is built into Linux. Over Bluetooth, recent kernels support it too; Steam also supports it directly." },
+    "win32": { "notes": "Windows has the driver built in. Over Bluetooth it pairs in Settings > Bluetooth & devices. If it shows an error, let Windows Update look for the driver." },
+    "darwin": {
+      "notes": "Works in games that use Apple's Game Controller framework and in Steam. Apple supports it over Bluetooth.",
+      "steps": [
+        {
+          "kind": "manual",
+          "title": "Pair the controller over Bluetooth",
+          "explain": "Unplug the cable. Turn the controller on with the Xbox button, then hold the small pair button on the top edge until the Xbox button flashes quickly. On the Mac open System Settings > Bluetooth and click Connect next to \"Xbox Wireless Controller\". Then press \"Check again\"."
+        }
+      ]
+    }
+  },
+  "sources": ["https://github.com/torvalds/linux/blob/master/drivers/input/joystick/xpad.c"]
+}

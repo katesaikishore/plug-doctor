@@ -1,0 +1,38 @@
+{
+  "SPAudioDataType" : [
+    {
+      "_items" : [
+        {
+          "_name" : "MacBook Air Microphone",
+          "coreaudio_default_audio_input_device" : "spaudio_yes",
+          "coreaudio_device_input" : 1,
+          "coreaudio_device_manufacturer" : "Apple Inc.",
+          "coreaudio_device_srate" : 48000,
+          "coreaudio_device_transport" : "coreaudio_device_type_builtin",
+          "coreaudio_input_source" : "MacBook Air Microphone"
+        },
+        {
+          "_name" : "MacBook Air Speakers",
+          "coreaudio_default_audio_output_device" : "spaudio_yes",
+          "coreaudio_default_audio_system_device" : "spaudio_yes",
+          "coreaudio_device_manufacturer" : "Apple Inc.",
+          "coreaudio_device_output" : 2,
+          "coreaudio_device_srate" : 48000,
+          "coreaudio_device_transport" : "coreaudio_device_type_builtin",
+          "coreaudio_output_source" : "MacBook Air Speakers"
+        },
+        {
+          "_name" : "USB Audio Device",
+          "coreaudio_device_input" : 1,
+          "coreaudio_device_manufacturer" : "C-Media Electronics Inc.",
+          "coreaudio_device_output" : 2,
+          "coreaudio_device_srate" : 48000,
+          "coreaudio_device_transport" : "coreaudio_device_type_usb",
+          "coreaudio_input_source" : "spaudio_default",
+          "coreaudio_output_source" : "spaudio_default"
+        }
+      ],
+      "_name" : "coreaudio_device"
+    }
+  ]
+}

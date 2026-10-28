@@ -1,0 +1,28 @@
+{
+  "id": "huion-tablets",
+  "name": "Huion drawing tablets and pen displays",
+  "category": "input",
+  "kind": "tablet",
+  "match": { "vendors": ["256c"] },
+  "summary": "Huion pen tablets and pen displays. Without a driver the pen moves the pointer like a mouse, but pressure and the shortcut buttons do nothing.",
+  "confidence": 0.7,
+  "support": { "darwin": "vendor-driver", "win32": "vendor-driver" },
+  "platforms": {
+    "linux": { "notes": "Many Huion tablets work with Linux's built-in uclogic driver. For full pressure and button support on any Linux distribution, OpenTabletDriver (free, open source) supports most Huion models." },
+    "darwin": {
+      "notes": "Install Huion's driver, or the free and open-source OpenTabletDriver, then allow it in System Settings > Privacy & Security under Accessibility. No security changes are needed.",
+      "steps": [
+        { "kind": "open-url", "title": "Download the Huion driver", "explain": "Download the driver for your tablet model and install it. OpenTabletDriver (opentabletdriver.net) is a free alternative.", "url": "https://www.huion.com/download/" },
+        { "kind": "manual", "title": "Allow the driver and replug the tablet", "explain": "When macOS asks, allow the driver in System Settings > Privacy & Security. Then unplug the tablet, plug it back in and press \"Check again\"." }
+      ]
+    },
+    "win32": {
+      "notes": "Install Huion's driver, or the free and open-source OpenTabletDriver.",
+      "steps": [
+        { "kind": "open-url", "title": "Download the Huion driver", "explain": "Download the driver for your tablet model and install it. OpenTabletDriver (opentabletdriver.net) is a free alternative.", "url": "https://www.huion.com/download/" },
+        { "kind": "manual", "title": "Replug the tablet", "explain": "Unplug the tablet, plug it back in and press \"Check again\"." }
+      ]
+    }
+  },
+  "sources": ["https://opentabletdriver.net/", "https://www.huion.com/download/"]
+}

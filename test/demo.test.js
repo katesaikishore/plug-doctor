@@ -41,6 +41,15 @@ test('the demo shows devices from every source and fixes the Brother printer', a
   const keyboard = await diagnose(byName(/Magic Keyboard/), demo.ctx);
   assert.equal(keyboard.status, 'idle');
 
+  const pad = await diagnose(byName(/Controller/), demo.ctx);
+  assert.equal(pad.category, 'input');
+  assert.equal(pad.support.level, 'unsupported', 'the wired Xbox 360 controller has no Apple-silicon driver');
+
+  const stick = await diagnose(byName(/Ultra Fit/), demo.ctx);
+  assert.equal(stick.category, 'storage');
+  assert.ok(stick.checks.some((c) => /NTFS/i.test(`${c.label} ${c.detail}`)), 'NTFS read-only is explained');
+  assert.ok(stick.plans.every((p) => p.steps.every((st) => st.kind !== 'command' || st.cmd === 'open')), 'never erases by itself');
+
   const netPrinter = await diagnose(byName(/M404n/), demo.ctx);
   assert.equal(netPrinter.status, 'needs-fix');
   assert.ok(netPrinter.plans[0].steps.some((s) => s.cmd === 'lpadmin' && s.args.includes('everywhere')));

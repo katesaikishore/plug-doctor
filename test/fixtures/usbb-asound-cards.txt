@@ -1,0 +1,6 @@
+ 0 [PCH            ]: HDA-Intel - HDA Intel PCH
+                      HDA Intel PCH at 0x6001120000 irq 147
+ 1 [Device         ]: USB-Audio - USB Audio Device
+                      C-Media Electronics Inc. USB Audio Device at usb-0000:00:14.0-2, full speed
+ 2 [nanoKONTROL2   ]: USB-Audio - nanoKONTROL2
+                      KORG INC. nanoKONTROL2 at usb-0000:00:14.0-3, full speed

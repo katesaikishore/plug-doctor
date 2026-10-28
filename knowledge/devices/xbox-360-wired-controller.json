@@ -1,0 +1,20 @@
+{
+  "id": "xbox-360-wired-controller",
+  "name": "Microsoft Xbox 360 wired controller",
+  "category": "input",
+  "kind": "controller",
+  "match": { "usb": ["045e:028e"] },
+  "summary": "The wired Xbox 360 controller. Windows and Linux drive it out of the box; macOS has no driver for it.",
+  "support": { "linux": "native", "win32": "native", "darwin-arm64": "unsupported", "darwin": "unsupported" },
+  "supportNote": {
+    "darwin": "macOS has no driver for the wired Xbox 360 controller, and Macs with Apple silicon cannot load the old community driver without lowering the Mac's security. Controllers that work on a Mac out of the box: the Xbox Wireless Controller over Bluetooth (Xbox One S or Series), PlayStation DualShock 4 and DualSense, and the Nintendo Switch Pro Controller."
+  },
+  "platforms": {
+    "linux": { "notes": "Driven by xpad, which is built into Linux. Steam also supports it directly." },
+    "win32": { "notes": "Windows has the driver built in. If it shows an error, let Windows Update look for the driver." },
+    "darwin": {
+      "notes": "There is no driver for this controller on current macOS. An unofficial driver existed for older Intel Macs but is no longer maintained, and on Macs with Apple silicon it would require lowering the Mac's security, which Plug Doctor never recommends. Use a controller macOS supports instead: the Xbox Wireless Controller over Bluetooth, a DualShock 4, a DualSense or a Switch Pro Controller."
+    }
+  },
+  "sources": ["https://github.com/torvalds/linux/blob/master/drivers/input/joystick/xpad.c"]
+}

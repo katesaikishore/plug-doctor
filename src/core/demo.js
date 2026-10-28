@@ -135,6 +135,30 @@ function usbDevices(sys) {
       nodes: ['cu.usbserial-1420'],
       driver: { bound: true, names: ['AppleUSBCHCOM'], unboundInterfaces: [] },
     },
+    {
+      vendorId: '0781',
+      productId: '5583',
+      vendorName: 'SanDisk',
+      productName: 'Ultra Fit',
+      serial: '4C530001230925111234',
+      deviceClass: '00',
+      location: '0x00600000',
+      interfaces: [{ number: '0', class: '08', subclass: '06', protocol: '50', name: null, driver: 'IOUSBMassStorageInterfaceNub', nodes: ['disk4'] }],
+      nodes: ['disk4'],
+      driver: { bound: true, names: ['IOUSBMassStorageInterfaceNub'], unboundInterfaces: [] },
+    },
+    {
+      vendorId: '045e',
+      productId: '028e',
+      vendorName: 'Microsoft',
+      productName: 'Controller',
+      serial: null,
+      deviceClass: 'ff',
+      location: '0x00700000',
+      interfaces: [{ number: '0', class: 'ff', subclass: '5d', protocol: '01', name: null, driver: null, nodes: [] }],
+      nodes: [],
+      driver: { bound: false, names: [], unboundInterfaces: ['0'] },
+    },
     ...(sys.extraUsb ?? []),
   ];
   return raw.map((d) => finalize(d, 'darwin'));
@@ -173,6 +197,10 @@ function createDemo() {
     }
     if (cmd === 'lpoptions' || cmd === 'lp') return ok('request id is demo-1 (1 file(s))\n');
     if (cmd === 'open') return ok();
+    if (cmd === 'diskutil') {
+      const key = args.filter((a) => a !== '-plist').join(' ');
+      return DATA.diskutil[key] ? ok(DATA.diskutil[key]) : missing(cmd);
+    }
     for (const handler of sys.handlers ?? []) {
       const res = handler(cmd, args, line);
       if (res) return res;

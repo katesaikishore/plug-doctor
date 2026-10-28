@@ -1,0 +1,27 @@
+{
+  "id": "playstation-controllers",
+  "name": "Sony PlayStation DualShock 4 and DualSense controllers",
+  "category": "input",
+  "kind": "controller",
+  "match": { "usb": ["054c:05c4", "054c:09cc", "054c:0ce6"] },
+  "summary": "PlayStation 4 (DualShock 4) and PlayStation 5 (DualSense) controllers. Standard USB game controllers with a headset jack.",
+  "support": { "linux": "native", "win32": "native", "darwin": "native" },
+  "supportNote": {
+    "win32": "Windows sees it as a standard game controller, but many PC games expect an Xbox controller. Steam's controller support makes it work in most Steam games."
+  },
+  "platforms": {
+    "linux": { "notes": "Built into Linux: hid-playstation (or hid-sony on older kernels). Steam also supports it directly." },
+    "win32": { "notes": "Windows sees it as a standard game controller. Many games expect an Xbox controller; Steam's controller support (Steam Input) makes PlayStation controllers work in most Steam games." },
+    "darwin": {
+      "notes": "macOS supports both controllers through its Game Controller framework. Apple documents them over Bluetooth.",
+      "steps": [
+        {
+          "kind": "manual",
+          "title": "Pair the controller over Bluetooth",
+          "explain": "Unplug the cable. DualShock 4: hold Share and the PS button until the light bar flashes. DualSense: hold Create and the PS button until the lights around the touchpad flash. On the Mac open System Settings > Bluetooth and click Connect next to the controller. Then press \"Check again\"."
+        }
+      ]
+    }
+  },
+  "sources": ["https://github.com/torvalds/linux/blob/master/drivers/hid/hid-playstation.c"]
+}
