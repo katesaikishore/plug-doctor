@@ -422,7 +422,7 @@ async function macStorage(device, ctx) {
 /** Fallback when diskutil cannot be read: what `mount` shows under /Volumes. */
 async function macStorageFromMount(device, ctx) {
   const checks = [];
-  const mounts = (await ctx.run('mount', [])).stdout.split('\n').filter((l) => l.includes('/Volumes/'));
+  const mounts = (await ctx.run('mount', [])).stdout.split(/\r?\n/).filter((l) => l.includes('/Volumes/'));
   const facts = { volumes: mounts.map((l) => l.replace(/^\S+ on (.+?) \((.*)\)$/, '$1 [$2]')) };
   const ntfs = mounts.filter((l) => /\(ntfs,/.test(l));
   if (ntfs.length) {

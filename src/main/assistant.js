@@ -69,7 +69,7 @@ function clip(text, filter) {
   let out = String(text);
   if (filter) {
     const f = filter.toLowerCase();
-    out = out.split('\n').filter((l) => l.toLowerCase().includes(f)).join('\n') || `(no lines contain "${filter}")`;
+    out = out.split(/\r?\n/).filter((l) => l.toLowerCase().includes(f)).join('\n') || `(no lines contain "${filter}")`;
   }
   return out.length > MAX_OUTPUT ? `${out.slice(0, MAX_OUTPUT)}\n... [${out.length - MAX_OUTPUT} more characters cut]` : out;
 }

@@ -298,7 +298,7 @@ function parseBluetoothctlShow(text) {
 /** Parse `bluetoothctl devices`: "Device AA:BB:CC:DD:EE:FF Some Name" lines. */
 function parseBluetoothctlDevices(text) {
   const out = [];
-  for (const line of clean(text).split('\n')) {
+  for (const line of clean(text).split(/\r?\n/)) {
     const m = line.trim().match(/^Device\s+([0-9A-F]{2}(?::[0-9A-F]{2}){5})(?:\s+(.*))?$/i);
     if (m) out.push({ address: normalizeAddress(m[1]), name: m[2]?.trim() || null });
   }
@@ -312,7 +312,7 @@ function parseBluetoothctlInfo(text) {
   if (!head) return null;
   const fields = {};
   const uuids = [];
-  for (const line of t.split('\n')) {
+  for (const line of t.split(/\r?\n/)) {
     const m = line.match(/^\s+([A-Za-z][A-Za-z ]*?):\s*(.*)$/);
     if (!m) continue;
     if (m[1] === 'UUID') uuids.push(m[2].trim());
@@ -342,7 +342,7 @@ function parseBluetoothctlInfo(text) {
 function parseRfkill(text) {
   const entries = [];
   let cur = null;
-  for (const line of clean(text).split('\n')) {
+  for (const line of clean(text).split(/\r?\n/)) {
     const head = line.match(/^(\d+):\s*([^:]+):\s*(.+)$/);
     if (head) {
       cur = { index: Number(head[1]), name: head[2].trim(), type: head[3].trim(), soft: null, hard: null };
@@ -375,7 +375,7 @@ async function listLinux({ run, bluetoothSysfs = '/sys/class/bluetooth' }) {
 
   const svc = await run('systemctl', ['is-active', 'bluetooth'], { timeout: 5000 });
   // is-active exits non-zero when the service is not running; its stdout still says why.
-  const svcState = svc.stdout.trim().split('\n')[0] || null;
+  const svcState = svc.stdout.trim().split(/\r?\n/)[0] || null;
   const serviceActive = svc.missing || !svcState ? null : svcState === 'active';
   raw.service = svc.missing ? 'systemctl not available' : svcState;
 

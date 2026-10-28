@@ -331,7 +331,7 @@ async function audioOutput(device, ctx, checks, plans, facts) {
     }
     const tag = (device.details.address ?? '').replace(/:/g, '_').toLowerCase();
     const sink = tag
-      ? sinks.stdout.split('\n').map((l) => l.split('\t')[1]?.trim()).find((s) => s && s.toLowerCase().includes(tag))
+      ? sinks.stdout.split(/\r?\n/).map((l) => l.split('\t')[1]?.trim()).find((s) => s && s.toLowerCase().includes(tag))
       : null;
     if (!sink) {
       checks.push(

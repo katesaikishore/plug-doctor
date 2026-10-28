@@ -186,7 +186,7 @@ function connectorKind(name) {
 function parseXrandr(text) {
   const outputs = [];
   let cur = null;
-  for (const line of String(text ?? '').split('\n')) {
+  for (const line of String(text ?? '').split(/\r?\n/)) {
     const head = line.match(/^(\S+) (connected|disconnected)( primary)?(?: (\d+)x(\d+)\+\d+\+\d+)?/);
     if (head) {
       cur = { name: head[1], connected: head[2] === 'connected', primary: Boolean(head[3]), current: null, modes: [] };
@@ -240,7 +240,7 @@ async function listLinux(ctx) {
     const dir = path.join(root, connector);
     if ((await readText(path.join(dir, 'status'))) !== 'connected') continue;
     const enabled = await readText(path.join(dir, 'enabled'));
-    const modes = ((await readText(path.join(dir, 'modes'))) ?? '').split('\n').map((l) => l.trim()).filter(Boolean);
+    const modes = ((await readText(path.join(dir, 'modes'))) ?? '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
     let edidBytes = null;
     try {
       edidBytes = await fs.readFile(path.join(dir, 'edid'));

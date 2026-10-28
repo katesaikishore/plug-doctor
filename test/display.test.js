@@ -439,3 +439,11 @@ test('USB-C Billboard devices are claimed; other USB devices are not', async () 
   assert.equal(r.category, 'display');
   assert.equal(r.support.level, 'native');
 });
+
+test('xrandr parser accepts Windows line endings (git checkouts on Windows use CRLF)', () => {
+  const crlf = fixture('display-xrandr.txt').replace(/\r?\n/g, '\r\n');
+  const outs = display.parseXrandr(crlf);
+  assert.deepEqual(outs.map((o) => [o.name, o.connected]), [['eDP-1', true], ['HDMI-1', true], ['DP-1', false], ['DP-2', false]]);
+  assert.deepEqual(outs[1].modes[0].rates.slice(0, 2), [30, 60]);
+  assert.deepEqual(outs[0].current, { width: 1920, height: 1080, refresh: 60.02 });
+});
