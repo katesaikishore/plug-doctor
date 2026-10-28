@@ -24,7 +24,17 @@ function file() {
 function load() {
   try {
     return { ...DEFAULTS, ...JSON.parse(fs.readFileSync(file(), 'utf8')) };
-  } catch {
+  } catch (err) {
+    if (err.code !== 'ENOENT') {
+      // Keep the damaged file for a person to look at, rather than letting the
+      // next save silently replace it.
+      try {
+        fs.renameSync(file(), `${file()}.damaged`);
+      } catch {
+        // Nothing more can be done; the defaults below still let the app start.
+      }
+      process.emitWarning(`Plug Doctor's settings file was damaged and has been reset. It was kept as settings.json.damaged.`);
+    }
     return { ...DEFAULTS };
   }
 }

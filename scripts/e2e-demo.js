@@ -108,6 +108,23 @@ async function run() {
     await win.waitForTimeout(400);
     check('settings save closes the dialog', !(await win.isVisible('#settings')));
 
+    // Pressing Enter in the key box must save, not cancel (regression check).
+    const before = await win.evaluate(() => window.plugDoctor.getSettings());
+    await win.click('#open-settings');
+    await win.waitForTimeout(300);
+    await win.click('#settings-form input[name="webResearch"]');
+    await win.click('#settings-form input[name="apiKey"]');
+    await win.keyboard.press('Enter');
+    await win.waitForTimeout(500);
+    const after = await win.evaluate(() => window.plugDoctor.getSettings());
+    check('Enter in the key box saves the settings', after.webResearch === !before.webResearch);
+    // Put the setting back so the check leaves no trace.
+    await win.click('#open-settings');
+    await win.waitForTimeout(300);
+    await win.click('#settings-form input[name="webResearch"]');
+    await win.click('#settings-form >> button[value="save"]');
+    await win.waitForTimeout(400);
+
     await win.setViewportSize({ width: 760, height: 520 });
     await win.waitForTimeout(400);
     const overflow = await win.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);

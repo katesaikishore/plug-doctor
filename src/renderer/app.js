@@ -527,8 +527,12 @@ async function openSettings() {
   dlg.showModal();
 }
 
+// Cancel closes without saving. It is not a submit button, so pressing Enter in
+// the key field saves (Save is the form's first submit button).
+$('#settings-cancel').addEventListener('click', () => $('#settings').close());
+
 $('#settings-form').addEventListener('submit', async (e) => {
-  if (e.submitter?.value !== 'save') return;
+  if (e.submitter?.id !== 'settings-save') return;
   e.preventDefault();
   const form = e.target;
   const patch = { autoFix: form.autoFix.checked, assistantEnabled: form.assistantEnabled.checked, webResearch: form.webResearch.checked, scanNetwork: form.scanNetwork.checked };
