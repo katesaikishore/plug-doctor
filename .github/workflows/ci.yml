@@ -38,6 +38,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Electron 44 does not download its binary during npm ci; this step does.
+      - run: node node_modules/electron/install.js
       - run: npm install --no-save playwright
       - run: sudo apt-get update && sudo apt-get install -y xvfb
       - run: xvfb-run -a npm run e2e
