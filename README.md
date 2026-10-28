@@ -1,119 +1,236 @@
-<p align="center"><img src="assets/icon.png" width="96" alt="Plug Doctor"></p>
+<p align="center">
+  <img src="assets/icon.png" width="104" alt="Plug Doctor icon">
+</p>
 
 <h1 align="center">Plug Doctor</h1>
 
-<p align="center"><strong>Plug it in. It just works.</strong><br>
-A free, open-source desktop app that works out what you connected (a USB device, a screen or TV, a Bluetooth gadget, something on your home network), checks whether your computer can use it, and fixes it if it can. Mac first, and also on Windows and Linux.</p>
+<p align="center">
+  <strong>Plug it in. It just works.</strong>
+</p>
+
+<p align="center">
+  Plug Doctor tells you what you connected to your computer, whether it can work,<br>
+  and walks you through making it work. Printers, TVs, phones, headphones, drives and more.
+</p>
+
+<p align="center">
+  <a href="https://github.com/katesaikishore/plug-doctor/actions/workflows/ci.yml"><img src="https://github.com/katesaikishore/plug-doctor/actions/workflows/ci.yml/badge.svg" alt="Tests"></a>
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license">
+  <img src="https://img.shields.io/badge/works%20on-macOS%20%C2%B7%20Windows%20%C2%B7%20Linux-555" alt="macOS, Windows and Linux">
+  <img src="https://img.shields.io/badge/cost-free-brightgreen" alt="Free">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/tv.png" width="760" alt="Plug Doctor showing a TV that is stuck at 30 Hz, with the steps to fix it">
+</p>
 
 ---
 
-My HP printer had no driver for macOS. With help from Claude I worked out what the printer actually was and what it spoke, found a driver that could drive it, and it printed. **Plug Doctor turns that process into an app anyone can use**: plug the device in, and it runs the troubleshooting a patient expert would.
+## Has this ever happened to you?
 
-![A fix plan for a printer with no vendor driver](docs/screenshots/fix-plan.png)
+- Your printer is on, but nothing comes out.
+- Your TV looks jerky, and the picture is cut off at the edges.
+- Your headphones are connected, but the sound still plays from the speakers.
+- Your Android phone is plugged in, but your Mac can't see its files.
+- Your Bluetooth keyboard won't connect.
+- Your USB stick opens on Windows but not on your Mac.
 
-## What it does
+You search the internet, find a forum post from years ago, and try things until something works. Plug Doctor does that search for you, explains what it found in plain words, and offers a fix that you can read and approve before anything changes.
 
-1. **Watches for devices.** USB every 2 seconds, screens every 5, Bluetooth every 10, and your home network every minute.
-2. **Identifies each device** from what it reports about itself: USB IDs and interface classes and which driver took it, a screen's EDID, a printer's IEEE 1284 ID (the page languages it speaks), Bluetooth state, the services a TV advertises on the network.
-3. **Gives a verdict first: can this computer use it at all?** Works with built-in drivers, works through an app, needs the maker's driver, or **cannot work on this computer**, said plainly. On Macs with Apple silicon, Plug Doctor never suggests lowering the Mac's security to load old drivers. It finds what works without that, or tells you honestly.
-4. **Runs checks** for that kind of device and explains the results in plain language.
-5. **Fixes it.** Each fix is a short list of steps with the exact commands shown. One click runs them, and your OS asks for your password when a step needs it. Steps only you can do (on your phone, on the TV remote) pause until you click "I've done this". With *Fix automatically* on, safe fixes for things you just plugged in (adding a printer, for example) run by themselves.
-6. **Asks for help when it is stuck (optional).** An AI assistant (Anthropic's Claude) looks at what your computer sees, researches the device and proposes fixes. **Every change it suggests needs your approval.**
-7. **Shares what worked.** A fix that worked becomes a *recipe* in the community knowledge base, so the next person with that device gets it in one click.
+## How it works
 
-### What it knows today
+1. **Plug it in.** Plug Doctor notices it within a few seconds.
+2. **Read the answer.** Every device gets one clear verdict:
+   - **Working**: nothing to do.
+   - **Needs a fix**: Plug Doctor has a fix ready.
+   - **Not working**: Plug Doctor explains why.
+   - **Can't work on this computer**: Plug Doctor says so, and tells you what does work instead.
+3. **Click "Make it work".** You see every step first. Your computer asks for your password when it needs to. Some steps, like tapping a button on your phone, wait until you say you've done them.
 
-| Device | What Plug Doctor does |
-| --- | --- |
-| **USB printers** | Reads the printer's IEEE 1284 ID through CUPS and picks a driver: a community recipe, driverless IPP-over-USB, an installed driver for the exact model, then a **generic driver for the language the printer speaks** (PostScript, PCL 6, PCL 5, ESC/P). Adds the printer, makes it the default and prints a test page. Resumes paused printers. Host-based "GDI" printers (like the HP LaserJet 1020) get model-specific recipes. On Windows: Device Manager problem codes, Windows Update and the Microsoft class driver. |
-| **Network printers and scanners** | Finds them on your network (mDNS/Bonjour) and adds AirPrint / IPP Everywhere printers **with no driver at all**. Network scanners work through Image Capture on Mac and `sane-airscan` on Linux. |
-| **Screens and TVs** | Reads every connected screen's EDID. Catches **4K stuck at 30 Hz** (an old cable or adapter), a resolution below the screen's native one, and **base M1/M2 Macs that can only drive one external screen** (explains DisplayLink). For TVs: overscan ("picture cut off"), PC/Game mode for sharp text, HDR, and why a Mac can't use the TV remote over HDMI (CEC). DisplayLink docks: checks for DisplayLink Manager. |
-| **TVs and speakers on your network** | Smart TVs, AirPlay (Apple TV, AirPlay 2 TVs, HomePod), Chromecast / Google TV, DLNA, DIAL and Roku. Tells you exactly how to cast or mirror from *this* computer, and what isn't possible (a Mac can't mirror to a non-AirPlay TV on its own). HomeKit accessories that aren't set up yet. |
-| **Bluetooth** | Bluetooth switched off or blocked, the service not running (Linux), no Bluetooth hardware at all, devices that won't reconnect (reconnect or pair again), low battery including each AirPods earbud and the case, headphones connected but sound still coming from the speakers. |
-| **Phones** | **Android file transfer on a Mac** (macOS has none built in: sets up OpenMTP), phones stuck in charge-only mode ("tap the USB notification, choose File transfer"), Android on Linux (file-manager support), iPhone trust prompts, and iPhones on Linux (usbmuxd / libimobiledevice) and Windows (Apple Devices). |
-| **Webcams and cameras** | Webcam permissions on Mac and Windows, missing `/dev/video` nodes, the `video` group and another app holding the camera on Linux; still cameras via Image Capture or gphoto2. |
-| **Scanners** | SANE on Linux (including the driverless backend), Image Capture on Mac, recipes for Canon LiDE models. |
-| **Audio, MIDI, game controllers, tablets, network adapters** | Class-compliant audio interfaces and MIDI devices, choosing the sound output, Xbox / PlayStation / Switch controllers (and an honest answer for the old wired Xbox 360 controller on Apple silicon), drawing tablets, USB Ethernet and Wi-Fi adapters (USB Wi-Fi dongles have no drivers for Apple-silicon Macs, and the app says so). |
-| **USB serial adapters and dev boards** | Arduino, ESP32, CH340, CP210x, FTDI, PL2303: finds the port (on Mac straight from the IORegistry), fixes Ubuntu's *brltty steals my serial port*, loads missing kernel modules, grants serial-port access. |
-| **USB drives** | Disks, partitions and filesystems; mounts unmounted volumes; explains limits (a Mac can read but not write NTFS) and never erases anything without you doing it yourself. |
-| **Anything else** | The support verdict, generic driver and error-code checks, and an *Under the hood* report with the raw descriptors and how to capture the device's USB traffic. That is the starting point for reverse engineering it. |
+<p align="center">
+  <img src="docs/screenshots/fix-plan.png" width="760" alt="A printer with the fix ready to run: each step is listed before it runs">
+</p>
 
-| | |
-| --- | --- |
-| ![A 4K TV stuck at 30 Hz](docs/screenshots/tv.png) | ![An Android phone on a Mac](docs/screenshots/phone.png) |
-| **Screens and TVs:** a 4K TV stuck at 30 Hz, and how to get 60 Hz. | **Phones:** charge-only mode, and Android file transfer on a Mac. |
-| ![An honest "cannot work on this Mac"](docs/screenshots/unsupported.png) | ![A network printer, no driver needed](docs/screenshots/network-printer.png) |
-| **Honest answers:** no driver exists for Apple silicon, so it says so and names what works. | **Your network:** AirPrint / IPP Everywhere printers set up in one click. |
+## Try it in one minute
 
-## Install
+You don't need any devices to try it. The demo shows a simulated Mac with sixteen devices, including a printer, a phone, a TV, headphones, a webcam, a drive and a game controller.
 
-Every tagged version is built for macOS (`.dmg`), Windows (installer) and Linux (`.AppImage`, `.deb`) and published on [Releases](https://github.com/katesaikishore/plug-doctor/releases).
-
-Or run from source (Node.js 20+):
+You need [Node.js](https://nodejs.org) version 20 or newer. Then open a terminal and type:
 
 ```sh
 git clone https://github.com/katesaikishore/plug-doctor.git
 cd plug-doctor
 npm install
-npm start          # the app
-npm run demo       # a simulated Mac with a desk full of devices: try it with nothing plugged in
-npm run cli -- list            # command line: list devices (add --no-network to skip the network scan)
-npm run cli -- diagnose        # command line: diagnose everything plugged in
-npm run cli -- fix hl-l2350    # command line: diagnose and fix one device
+npm run demo
 ```
 
-### The AI assistant (optional)
+Click around. Nothing real is changed in demo mode.
 
-Plug Doctor's own checks and fixes work offline and need no account. The assistant uses Anthropic's Claude API: open **Settings**, paste an API key from [console.anthropic.com](https://console.anthropic.com), and it is stored encrypted in your system keychain. You can also set `ANTHROPIC_API_KEY` in the environment.
+## Use it with your own devices
 
-When you use the assistant, it sends the device details, Plug Doctor's diagnosis and the output of the read-only probes it runs to the API. It cannot run arbitrary commands:
-
-- **Read-only probes** are named, fixed commands (`lsusb -v`, `lpinfo -m`, `ioreg`, `pnputil /enum-drivers`, ...). It never gets a shell.
-- **Changes** go through `propose_fix`. You see every command, and nothing runs until you approve. Only a short allow-list of programs is accepted (CUPS tools, package installers, `usermod`, `modprobe`, `udevadm`, `pnputil`), and it may not remove software.
-- Anything outside that list becomes step-by-step instructions for you to follow yourself.
-
-## How it works
-
-```
- sources                                    families (plug-ins)
- ───────                                    ───────────────────
- USB        sysfs · ioreg · PnP       ─┐     printer   storage   serial   phone
- Screens    EDID · system_profiler    ─┤     camera    scanner   audio    input
- Bluetooth  bluetoothctl · profiler   ─┼──►  display   bluetooth network-device
- Network    mDNS · SSDP (pure Node)   ─┘     network-adapter     generic (fallback)
-                                              │
-              support verdict ◄───────────────┤  + knowledge base recipes
-                                              ▼
-                               fix plans { command | manual | open-url }
-                                              │
-                                              ▼
-              runner: allow-listed programs only · OS password prompt for admin steps
+```sh
+npm start
 ```
 
-No native modules: everything is plain Node.js and the tools your OS already has, so it installs anywhere. Writing a new family takes one file; see [docs/FAMILIES.md](docs/FAMILIES.md).
+The app opens and starts watching your computer. Plug something in and watch it appear.
 
-There is more in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Ready-to-download installers for Mac, Windows and Linux will be attached to the first release. Until then, running from source is the way to go.
 
-## Contribute: every recipe helps someone
+> **The first time you open it,** Mac and Windows will warn you, because Plug Doctor isn't signed by Apple or Microsoft yet. On a Mac, right-click the app and choose **Open**. On Windows, click **More info**, then **Run anyway**. All the code is in this repository if you want to check it first.
 
-The most valuable contribution needs no code: **a recipe for a device you got working.** A recipe is a small JSON file in [`knowledge/devices/`](knowledge/devices) that says which device it is for and what made it work on each OS. CI checks every recipe, so a typo cannot break anyone's printer. See [docs/ADDING_A_DEVICE.md](docs/ADDING_A_DEVICE.md).
+## Which computers does it work on?
 
-Got a device nothing can drive? Open the *Under the hood* tab, click **Ask the community on GitHub**, and paste the report. [docs/REVERSE_ENGINEERING.md](docs/REVERSE_ENGINEERING.md) explains how to go further.
+| Computer | How complete it is today |
+| --- | --- |
+| **Mac** (Intel and Apple silicon) | **Most complete.** Built around the limits of newer Macs, and it says plainly when something can't work. |
+| **Windows** | **Works, with fewer fixes so far.** Finds devices and explains problems. Some fixes are still "open this page and do this". |
+| **Linux** | **Works well**, for people comfortable with a terminal. Fixes use your system's own package manager. |
 
-Code contributions are welcome too. See [CONTRIBUTING.md](CONTRIBUTING.md). Wanted next:
+These claims come from automated tests that run on all three systems. Testing on many different real devices is the next big step, and it's where you can help. See [Help make it better](#help-make-it-better).
 
-- **Test reports from real hardware.** Every family was built from documented tool output; real Macs, PCs and devices will find the rough edges.
-- Windows: read the printer's IEEE 1284 ID and pick a class driver by language; per-screen refresh rates
-- More recipes: printers, scanners, docks, controllers, anything you got working
-- Translations: the people who need this most often don't read English
+## What it can help with
 
-## Safety
+| Device | What Plug Doctor does |
+| --- | --- |
+| **Printers** | Finds a driver that works, or sets up a printer that needs no driver at all. Adds it, makes it the default, and prints a test page. |
+| **Network printers and scanners** | Finds printers and scanners on your home network and sets them up. Many need no driver. |
+| **TVs and screens** | Finds a screen stuck at a low refresh rate (usually the cable or adapter is the cause), a picture that doesn't fill the screen, and a resolution lower than it should be. |
+| **Smart TVs and speakers** | Works out how to cast or mirror to your TV or speaker from your computer, and tells you what your computer can't do. |
+| **Bluetooth** | Switched-off or blocked Bluetooth, devices that won't reconnect, low battery (including each AirPods earbud), and headphones that aren't being used for sound. |
+| **Phones** | Gets your Android phone's files onto a Mac, tells you when a phone is stuck in "charge only" mode, and helps with iPhones on Linux and Windows. |
+| **Webcams and cameras** | Checks camera permissions, and whether another app is using the camera. |
+| **Scanners** | Gets scanners working through the system's own scanning tools. |
+| **Headphones, microphones and music gear** | Finds audio devices, and offers to switch the sound output to them. |
+| **Game controllers and drawing tablets** | Explains which controllers work on your computer, and sets up the ones that do. |
+| **USB Ethernet and Wi-Fi adapters** | Explains whether an adapter can work with your computer. |
+| **Drives and USB sticks** | Opens drives that aren't opened yet. Explains why some drives can't be written to on a Mac. Never erases anything for you. |
+| **Arduino and other dev boards** | Finds the board's port, and fixes common problems that block it. |
+| **Anything else** | Says whether your computer already knows the device, and gives you a report you can share to get help. |
 
-- Every command is shown before it runs. Fixes only *add* things (a printer queue, a package, a group membership). The built-in plans never delete anything.
-- Administrator steps use your OS's own prompt (polkit, macOS authorization dialog, UAC). Plug Doctor never sees your password.
-- The page cannot run commands. It can only ask the main process to run a fix by its ID, and the main process looks that plan up again from its own diagnosis.
-- Report security issues privately. See [SECURITY.md](SECURITY.md).
+<p align="center">
+  <img src="docs/screenshots/unsupported.png" width="760" alt="A game controller that can't work on an Apple silicon Mac, with a clear explanation and what works instead">
+</p>
+
+## What it won't do
+
+- **It won't lower your Mac's security** to make an old driver load. On newer Macs that isn't safe, so Plug Doctor tells you what works instead.
+- **It won't erase your drives**, and it won't delete software or overwrite your files.
+- **It can't make everything work.** Some devices have no driver for your computer. Plug Doctor says so rather than pretending.
+- **Some problems have no automatic fix yet.** For example, the HP LaserJet 1020 on a Mac has no ready-made fix. You'll see a clear message, and the AI assistant can help you look for options.
+
+## Is it safe?
+
+- **You see every command before it runs.** The exact steps are shown in plain text before anything changes.
+- **Its built-in fixes only add things,** like a printer or a helper package. They never remove software.
+- **Passwords go through your computer's own prompt.** Plug Doctor never sees your password.
+- **Nothing goes to the internet** unless you turn on the AI assistant. The home-network scan only looks at your own network.
+
+## Your privacy
+
+- Plug Doctor has no accounts and doesn't track you.
+- The **AI assistant** is optional. If you use it, the details of the device you're asking about, Plug Doctor's checks and the output of a few read-only system checks go to Anthropic's Claude service so it can answer you. Nothing else is sent.
+- Your AI key is stored encrypted in your computer's keychain. It is never shown on screen.
+
+## The optional AI assistant
+
+Plug Doctor's own checks and fixes work without the internet. For the harder problems, you can turn on the **AI assistant**, which is powered by [Claude](https://claude.ai) from Anthropic.
+
+To use it, open **Settings** and paste your Anthropic API key. Get a key at [console.anthropic.com](https://console.anthropic.com). Anthropic charges for API use, so check their pricing first.
+
+The assistant can look at what your computer sees, search the web for drivers and known fixes, and propose a fix. **It never changes anything without asking you first.** It can only use a short list of safe commands, and it can't remove software.
+
+## Command line
+
+If you prefer the terminal, or your computer has no screen, the same checks are available as commands:
+
+```sh
+npm run cli -- list                    # see what is connected
+npm run cli -- diagnose                # check everything
+npm run cli -- diagnose brother        # check devices whose name contains "brother"
+npm run cli -- fix brother             # check, then apply a fix after you confirm
+npm run cli -- report brother          # a report you can paste into a GitHub issue
+npm run cli -- watch                   # keep watching while you plug things in
+```
+
+Add `--demo` to any command to try it on the simulated Mac. Add `--help` to see every option.
+
+## Help make it better
+
+Plug Doctor is new, and the most useful thing you can do is test it on your own devices.
+
+- **Tell us what worked, and what didn't.** Open the *Under the hood* tab for a device and click **Ask the community on GitHub**. It fills in a report for you.
+- **Share a fix that worked for you.** The assistant can write a fix up as a *recipe*, so the next person with the same device gets it in one click. See [docs/ADDING_A_DEVICE.md](docs/ADDING_A_DEVICE.md).
+- **Help with code or translations.** Read [CONTRIBUTING.md](CONTRIBUTING.md). Translations are especially welcome, because many people who need this most don't read English.
+
+Found a security problem? Please report it privately, as described in [SECURITY.md](SECURITY.md).
+
+## Questions people ask
+
+**Is it free?** Yes. The code is free and open source under the MIT license. The optional AI assistant needs an Anthropic API key, which you pay for directly to Anthropic.
+
+**Does it need an account or an internet connection?** No account is needed. The checks and fixes work without the internet. Only the AI assistant, and the first download of the app, need it.
+
+**Will it change my computer without asking?** No. Some safe fixes can run automatically when you plug in a device, but only if you turn that on in Settings, and only for things you plugged in yourself.
+
+**Why is it called Plug Doctor?** Because it does what a good repair person does: asks what's wrong, explains it, and fixes it with you.
+
+**Who made it?** [Kate Sai Kishore](https://github.com/katesaikishore), built with help from [Claude](https://claude.ai), Anthropic's AI model.
+
+## For developers
+
+<details>
+<summary><strong>How it's built</strong></summary>
+
+<br>
+
+Plug Doctor is written in plain Node.js, with [Electron](https://www.electronjs.org) for the window. It has no native modules, so it installs anywhere without a compiler.
+
+```
+ Where devices come from          Plug-ins that understand each kind of device
+ ───────────────────────          ──────────────────────────────────────────────
+ USB                              printer · storage · serial · phone · camera
+ Screens and TVs                  scanner · audio · input · display
+ Bluetooth                        bluetooth · network-device · network-adapter
+ Home network (mDNS, SSDP)        generic (fallback for everything else)
+                                       │
+                 support verdict  ◄────┤  + community recipes (knowledge/devices)
+                                       ▼
+                 fix plans: run a command · a manual step · open a settings page
+                                       │
+                                       ▼
+                 runner: allow-listed commands only · your system's password prompt
+```
+
+- Adding a new kind of device is one file. See [docs/FAMILIES.md](docs/FAMILIES.md).
+- The full design is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+**Tests**
+
+```sh
+npm test       # unit tests, run on macOS, Windows and Linux in CI
+```
+
+</details>
+
+<details>
+<summary><strong>Project layout</strong></summary>
+
+<br>
+
+| Folder | What's in it |
+| --- | --- |
+| `src/core/` | Device detection, diagnosis, fix plans and the command runner. Works without the app window, so the command line uses it too. |
+| `src/core/families/` | One file per kind of device: how to recognise it, what to check, how to fix it. |
+| `src/core/sources/` | Where devices come from: USB, screens, Bluetooth, and the home network. |
+| `src/main/` | The Electron app's main process: windows, settings, the assistant. |
+| `src/renderer/` | What you see on screen. |
+| `knowledge/devices/` | Community recipes, one small JSON file per device or device family. |
+| `bin/` | The command-line tool. |
+| `test/` | Unit tests, with recorded command output as test data. |
+| `docs/` | Guides for contributors. |
+
+</details>
 
 ## License
 
-[MIT](LICENSE). Plug Doctor is not affiliated with HP, Brother, Epson, WCH, Silicon Labs, FTDI, Prolific, Arduino or any other vendor named here. Their names are used only to identify their devices.
+[MIT](LICENSE). Plug Doctor isn't affiliated with HP, Apple, Microsoft, Google, Canon, Brother, Epson, Logitech, Sony, Nintendo, WCH, Silicon Labs, FTDI, Prolific, Arduino or any other company named here. Their names are used only to identify the devices.
