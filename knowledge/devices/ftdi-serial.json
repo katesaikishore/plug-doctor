@@ -1,0 +1,13 @@
+{
+  "id": "ftdi-serial",
+  "name": "FTDI USB-serial adapters (FT232R, FT2232, FT232H, FT-X)",
+  "category": "serial",
+  "match": { "usb": ["0403:6001", "0403:6010", "0403:6014", "0403:6015"] },
+  "summary": "The most common professional USB-serial chips.",
+  "platforms": {
+    "linux": { "notes": "The ftdi_sio driver is built into Linux." },
+    "darwin": { "notes": "macOS includes a driver for FTDI chips." },
+    "win32": { "notes": "Windows Update installs FTDI's VCP driver." }
+  },
+  "sources": ["https://ftdichip.com/drivers/vcp-drivers/"]
+}

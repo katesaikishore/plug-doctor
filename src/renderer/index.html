@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>Plug Doctor</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand">
+        <span class="logo" aria-hidden="true"></span>
+        <span class="brand-name">Plug Doctor</span>
+      </div>
+      <div class="watching" id="watching"><span class="pulse"></span>Watching your USB ports</div>
+      <button class="icon-btn" id="open-settings" title="Settings" aria-label="Settings"></button>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <h2>Plugged in</h2>
+        <ul id="device-list" class="device-list"></ul>
+      </aside>
+      <main id="detail" class="detail"></main>
+    </div>
+
+    <dialog id="settings" class="modal">
+      <form method="dialog" id="settings-form">
+        <h2>Settings</h2>
+        <label class="toggle">
+          <input type="checkbox" name="autoFix" />
+          <span>
+            <strong>Fix automatically</strong>
+            <small>When a device is plugged in and Plug Doctor is confident about a safe fix (like adding a printer), apply it without asking. Your computer still asks for your password when needed.</small>
+          </span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" name="assistantEnabled" />
+          <span>
+            <strong>AI assistant</strong>
+            <small>For devices Plug Doctor cannot fix on its own. Device details and command output are sent to Anthropic's Claude API when you use it.</small>
+          </span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" name="webResearch" />
+          <span>
+            <strong>Let the assistant search the web</strong>
+            <small>For finding drivers and known fixes.</small>
+          </span>
+        </label>
+        <label class="field">
+          <span><strong>Anthropic API key</strong> <small id="key-status"></small></span>
+          <input type="password" name="apiKey" autocomplete="off" placeholder="sk-ant-..." />
+          <small>Stored encrypted in your system keychain. Get one at console.anthropic.com.</small>
+        </label>
+        <p class="error" id="settings-error" hidden></p>
+        <div class="actions">
+          <button value="cancel" class="btn ghost">Cancel</button>
+          <button value="save" class="btn primary" id="settings-save">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="approval" class="modal">
+      <form method="dialog">
+        <p class="eyebrow">The assistant wants to make a change</p>
+        <h2 id="approval-title"></h2>
+        <p id="approval-why"></p>
+        <ol id="approval-steps" class="steps"></ol>
+        <p class="note">Only approve if this sounds right to you. Steps marked "administrator" will make your computer ask for your password.</p>
+        <div class="actions">
+          <button value="no" class="btn ghost">Don't do it</button>
+          <button value="yes" class="btn primary">Approve and run</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="markdown.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

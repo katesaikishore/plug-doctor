@@ -1,0 +1,19 @@
+{
+  "id": "ch340-serial",
+  "name": "WCH CH340 / CH341 USB-serial adapter",
+  "category": "serial",
+  "match": { "usb": ["1a86:7523", "1a86:5523"] },
+  "summary": "The cheap USB-serial chip on most Arduino clones, ESP8266/ESP32 boards and 3D printers.",
+  "platforms": {
+    "linux": {
+      "notes": "The ch341 driver is built into Linux. On Ubuntu 22.04 and later the brltty braille service grabs this chip and the port vanishes; Plug Doctor detects and fixes that."
+    },
+    "darwin": {
+      "notes": "Recent macOS versions include a driver. If no /dev/cu.* port appears, install WCH's driver and allow it in System Settings > Privacy & Security."
+    },
+    "win32": {
+      "notes": "Windows Update normally installs the driver. If not, WCH publishes CH341SER."
+    }
+  },
+  "sources": ["https://www.wch-ic.com/downloads/CH341SER_ZIP.html"]
+}

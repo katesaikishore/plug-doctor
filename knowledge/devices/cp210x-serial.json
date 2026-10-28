@@ -1,0 +1,13 @@
+{
+  "id": "cp210x-serial",
+  "name": "Silicon Labs CP210x USB-UART bridge",
+  "category": "serial",
+  "match": { "usb": ["10c4:ea60", "10c4:ea70"] },
+  "summary": "USB-serial chip used on many ESP32 dev boards, GPS modules and drones.",
+  "platforms": {
+    "linux": { "notes": "The cp210x driver is built into Linux." },
+    "darwin": { "notes": "If no /dev/cu.SLAB_USBtoUART or /dev/cu.usbserial port appears, install the Silicon Labs VCP driver." },
+    "win32": { "notes": "Windows Update normally installs the driver; Silicon Labs also publishes it." }
+  },
+  "sources": ["https://www.silabs.com/developer-tools/usb-to-uart-bridge-vcp-drivers"]
+}

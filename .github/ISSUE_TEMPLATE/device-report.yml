@@ -1,0 +1,26 @@
+name: Device does not work
+description: A USB device Plug Doctor could not fix
+labels: [device-report]
+body:
+  - type: markdown
+    attributes:
+      value: In Plug Doctor, open the device, go to **Under the hood**, click **Copy report**, and paste it below.
+  - type: textarea
+    id: report
+    attributes:
+      label: Device report
+      description: Paste the report from Plug Doctor
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: What happened, and what have you tried?
+  - type: input
+    id: os
+    attributes:
+      label: OS and version
+      placeholder: macOS 15.1, Ubuntu 24.04, Windows 11 24H2...
+    validations:
+      required: true

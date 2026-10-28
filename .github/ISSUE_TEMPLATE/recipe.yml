@@ -1,0 +1,23 @@
+name: Share a fix (recipe)
+description: A fix that made a device work, for the knowledge base
+labels: [recipe]
+body:
+  - type: textarea
+    id: recipe
+    attributes:
+      label: Recipe JSON
+      description: Drafted by the assistant, or written by hand following docs/ADDING_A_DEVICE.md
+      render: json
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Tested on
+      placeholder: macOS 15.1 / Ubuntu 24.04 / Windows 11
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else?

@@ -1,0 +1,20 @@
++-o IOUSBHostInterface@0  <class IOUSBHostInterface, id 0x100000a20, registered, matched, active, busy 0 (0 ms), retain 8>
+  {
+    "bInterfaceProtocol" = 2
+    "idProduct" = 11031
+    "bInterfaceNumber" = 0
+    "bInterfaceSubClass" = 1
+    "locationID" = 1048576
+    "idVendor" = 1008
+    "bInterfaceClass" = 7
+  }
++-o IOUSBHostInterface@0  <class IOUSBHostInterface, id 0x100000b30, registered, matched, active, busy 0 (0 ms), retain 8>
+  {
+    "bInterfaceProtocol" = 2
+    "idProduct" = 29987
+    "bInterfaceNumber" = 0
+    "bInterfaceSubClass" = 1
+    "locationID" = 2097152
+    "idVendor" = 6790
+    "bInterfaceClass" = 255
+  }

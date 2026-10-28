@@ -1,0 +1,8 @@
+[
+  {"InstanceId":"USB\\VID_03F0&PID_2B17\\FN16VR6","FriendlyName":"HP LaserJet 1020","Class":null,"Status":"Error","Manufacturer":null,"Service":null,"Problem":28,"CompatibleID":["USB\\Class_07&SubClass_01&Prot_02","USB\\Class_07&SubClass_01","USB\\Class_07"]},
+  {"InstanceId":"USB\\VID_046D&PID_C52B\\5&2B4F1D3&0&3","FriendlyName":"USB Composite Device","Class":"USB","Status":"OK","Manufacturer":"(Standard USB Host Controller)","Service":"usbccgp","Problem":0,"CompatibleID":["USB\\DevClass_00&SubClass_00&Prot_00","USB\\COMPOSITE"]},
+  {"InstanceId":"USB\\VID_046D&PID_C52B&MI_00\\6&1A2B3C&0&0000","FriendlyName":"USB Input Device","Class":"HIDClass","Status":"OK","Manufacturer":"(Standard system devices)","Service":"HidUsb","Problem":0,"CompatibleID":["USB\\Class_03&SubClass_01&Prot_01","USB\\Class_03&SubClass_01","USB\\Class_03"]},
+  {"InstanceId":"USB\\VID_046D&PID_C52B&MI_01\\6&1A2B3C&0&0001","FriendlyName":"USB Input Device","Class":"HIDClass","Status":"OK","Manufacturer":"(Standard system devices)","Service":"HidUsb","Problem":0,"CompatibleID":"USB\\Class_03&SubClass_01&Prot_02"},
+  {"InstanceId":"USB\\ROOT_HUB30\\4&1B3C5D7&0&0","FriendlyName":"USB Root Hub (USB 3.0)","Class":"USB","Status":"OK","Manufacturer":"(Standard USB HUBs)","Service":"USBHUB3","Problem":0,"CompatibleID":null},
+  {"InstanceId":"USB\\VID_05E3&PID_0610\\5&ABC&0&1","FriendlyName":"Generic USB Hub","Class":"USB","Status":"OK","Manufacturer":"(Generic USB Hub)","Service":"USBHUB3","Problem":0,"CompatibleID":["USB\\Class_09&SubClass_00&Prot_00"]}
+]

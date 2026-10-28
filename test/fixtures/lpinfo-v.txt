@@ -1,0 +1,12 @@
+Device: uri = usb://HP/LaserJet%201020?serial=FN16VR6
+        class = direct
+        info = HP LaserJet 1020
+        make-and-model = HP LaserJet 1020
+        device-id = MFG:Hewlett-Packard;MDL:HP LaserJet 1020;CMD:ACL;CLS:PRINTER;DES:HP LaserJet 1020;FWVER:20050309;
+        location =
+Device: uri = usb://Brother/HL-L2350DW%20series?serial=E78123A9N123456
+        class = direct
+        info = Brother HL-L2350DW series
+        make-and-model = Brother HL-L2350DW series
+        device-id = MFG:Brother;CMD:PJL,PCL,PCLXL,URF;MDL:HL-L2350DW series;CLS:PRINTER;CID:Brother Laser Type1;URF:W8,CP1,IS4-1,MT1-3-4-5-8,OB10,PQ4,RS300-600-1200,V1.4,DM1;
+        location =

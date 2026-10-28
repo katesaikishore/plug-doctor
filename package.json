@@ -1,0 +1,86 @@
+{
+  "name": "plug-doctor",
+  "productName": "Plug Doctor",
+  "version": "0.1.0",
+  "description": "Plug in any USB device and it just works. Detects, diagnoses and fixes USB devices, with an optional AI troubleshooting assistant.",
+  "main": "src/main/main.js",
+  "bin": {
+    "plug-doctor": "bin/plug-doctor.js"
+  },
+  "scripts": {
+    "start": "electron .",
+    "demo": "electron . --demo",
+    "cli": "node bin/plug-doctor.js",
+    "test": "node --test",
+    "dist": "electron-builder",
+    "dist:dir": "electron-builder --dir"
+  },
+  "keywords": [
+    "usb",
+    "printer",
+    "driver",
+    "troubleshooting",
+    "cups",
+    "electron",
+    "reverse-engineering",
+    "accessibility"
+  ],
+  "author": "Kate Sai Kishore",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/katesaikishore/plug-doctor.git"
+  },
+  "homepage": "https://github.com/katesaikishore/plug-doctor",
+  "bugs": "https://github.com/katesaikishore/plug-doctor/issues",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.133.0"
+  },
+  "devDependencies": {
+    "electron": "44.9.1",
+    "electron-builder": "26.17.0"
+  },
+  "build": {
+    "appId": "org.plugdoctor.app",
+    "productName": "Plug Doctor",
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "bin/**/*",
+      "assets/**/*",
+      "knowledge/**/*",
+      "package.json",
+      "LICENSE"
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Utility",
+      "maintainer": "Plug Doctor contributors"
+    }
+  }
+}

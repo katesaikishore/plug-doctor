@@ -1,0 +1,15 @@
+{
+  "id": "epson-inkjet",
+  "name": "Epson inkjet printers (ESC/P-R)",
+  "category": "printer",
+  "match": { "vendors": ["04b8"] },
+  "summary": "Most Epson inkjets speak ESC/P-R. Epson publishes an open-source ESC/P-R driver for Linux.",
+  "confidence": 0.6,
+  "platforms": {
+    "linux": {
+      "packages": { "apt": ["printer-driver-escpr"], "dnf": ["epson-inkjet-printer-escpr"], "zypper": ["epson-inkjet-printer-escpr"] },
+      "notes": "After installing, press \"Check again\" so Plug Doctor can find the model's driver."
+    }
+  },
+  "sources": ["https://download.ebz.epson.net/dsc/search/01/search/"]
+}

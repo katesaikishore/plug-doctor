@@ -1,0 +1,13 @@
+{
+  "id": "arduino-boards",
+  "name": "Arduino boards (Uno, Mega 2560, Leonardo)",
+  "category": "serial",
+  "match": { "usb": ["2341:0043", "2341:0001", "2341:0042", "2341:0010", "2341:8036", "2341:0036"] },
+  "summary": "Genuine Arduino boards appear as a standard USB modem (CDC ACM) serial port.",
+  "platforms": {
+    "linux": { "notes": "Shows up as /dev/ttyACM0. If the Arduino IDE says \"permission denied\", your account needs to be in the dialout group; Plug Doctor fixes that." },
+    "darwin": { "notes": "Shows up as /dev/cu.usbmodem*. No driver needed." },
+    "win32": { "notes": "Shows up as a COM port. Windows 10 and later need no driver." }
+  },
+  "sources": ["https://support.arduino.cc/hc/en-us/articles/4412955149586-If-your-board-is-not-detected-by-Arduino-IDE"]
+}

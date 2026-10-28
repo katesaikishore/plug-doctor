@@ -1,0 +1,34 @@
+{
+  "id": "hp-laserjet-hostbased",
+  "name": "HP LaserJet 1018 / 1020 / P1005 / P1006 / P1505 (host-based)",
+  "category": "printer",
+  "match": {
+    "usb": ["03f0:4117", "03f0:2b17", "03f0:3d17", "03f0:3e17", "03f0:3f17"],
+    "models": ["LaserJet 1018", "LaserJet 1020", "LaserJet P1005", "LaserJet P1006", "LaserJet P1505"]
+  },
+  "summary": "Host-based laser printers: they have no page language of their own (command set ACL/ZjStream) and need their firmware sent from the computer every time they power on. Generic drivers cannot drive them.",
+  "confidence": 0.9,
+  "platforms": {
+    "linux": {
+      "packages": { "apt": ["hplip"], "dnf": ["hplip"], "pacman": ["hplip"], "zypper": ["hplip"] },
+      "steps": [
+        {
+          "kind": "manual",
+          "title": "Download HP's firmware plugin",
+          "explain": "Open a terminal and run:  hp-plugin -i   then accept HP's license. This downloads the firmware these printers need at power-on. Unplug and replug the printer afterwards."
+        }
+      ],
+      "notes": "HPLIP's hpcups driver supports these models once the proprietary plugin (firmware) is installed. The open-source foo2zjs driver is an alternative."
+    },
+    "darwin": {
+      "notes": "HP did not publish drivers for these models for current macOS. There is no ready-made recipe here yet: ask the assistant to research options for your macOS version, and please share what works so the next person gets it in one click."
+    },
+    "win32": {
+      "notes": "Windows Update usually provides a driver for these models. If Device Manager shows Code 28, use \"Ask Windows to look for a driver\"."
+    }
+  },
+  "sources": [
+    "https://developers.hp.com/hp-linux-imaging-and-printing/supported_devices/index",
+    "https://developers.hp.com/hp-linux-imaging-and-printing/plugins"
+  ]
+}

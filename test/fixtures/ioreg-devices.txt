@@ -1,0 +1,26 @@
++-o Root  <class IORegistryEntry, id 0x100000100, retain 23>
+  +-o AppleT8103USBXHCI@00000000  <class AppleT8103USBXHCI, id 0x1000002a1, registered, matched, active, busy 0 (0 ms), retain 72>
+    +-o HP LaserJet 1020@00100000  <class IOUSBHostDevice, id 0x100000a1b, registered, matched, active, busy 0 (12 ms), retain 26>
+    | {
+    |   "sessionID" = 1520318112
+    |   "idProduct" = 11031
+    |   "iManufacturer" = 1
+    |   "bDeviceClass" = 0
+    |   "USB Product Name" = "HP LaserJet 1020"
+    |   "locationID" = 1048576
+    |   "USB Serial Number" = "FN16VR6"
+    |   "USB Vendor Name" = "Hewlett-Packard"
+    |   "idVendor" = 1008
+    |   "Device Speed" = 1
+    |   "kUSBCurrentConfiguration" = 1
+    | }
+    |
+    +-o USB2.0-Serial@00200000  <class IOUSBHostDevice, id 0x100000b2c, registered, matched, active, busy 0 (3 ms), retain 20>
+      {
+        "idProduct" = 29987
+        "bDeviceClass" = 255
+        "USB Product Name" = "USB2.0-Serial"
+        "locationID" = 2097152
+        "idVendor" = 6790
+        "kUSBSerialNumberString" = ""
+      }

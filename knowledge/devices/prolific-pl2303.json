@@ -1,0 +1,12 @@
+{
+  "id": "prolific-pl2303",
+  "name": "Prolific PL2303 USB-serial adapter",
+  "category": "serial",
+  "match": { "usb": ["067b:2303", "067b:23a3"] },
+  "summary": "Older USB-serial chip found in many cheap cables. Counterfeit copies are common.",
+  "platforms": {
+    "linux": { "notes": "The pl2303 driver is built into Linux and works with genuine and most counterfeit chips." },
+    "win32": { "notes": "Newer Prolific drivers refuse counterfeit or discontinued (PL2303HXA/XA) chips and Device Manager shows Code 10. If that happens the cable is the problem: replace it with an FTDI or CP210x cable." }
+  },
+  "sources": ["https://www.prolific.com.tw/US/ShowProduct.aspx?p_id=225&pcid=41"]
+}

@@ -1,0 +1,18 @@
+{
+  "id": "hp-printers",
+  "name": "HP printers (all models)",
+  "category": "printer",
+  "match": { "vendors": ["03f0"] },
+  "summary": "HP's own open-source driver suite, HPLIP, supports most HP printers on Linux.",
+  "confidence": 0.6,
+  "platforms": {
+    "linux": {
+      "packages": { "apt": ["hplip"], "dnf": ["hplip"], "pacman": ["hplip"], "zypper": ["hplip"] },
+      "notes": "After installing HPLIP, press \"Check again\": the model-specific driver will show up as an installed driver."
+    },
+    "darwin": {
+      "notes": "Apple distributes an \"HP Printer Drivers\" package through Apple Support and Software Update. Many models also work driverless via AirPrint."
+    }
+  },
+  "sources": ["https://developers.hp.com/hp-linux-imaging-and-printing"]
+}

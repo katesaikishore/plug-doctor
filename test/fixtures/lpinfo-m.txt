@@ -1,0 +1,6 @@
+drv:///sample.drv/generic.ppd Generic PostScript Printer
+drv:///sample.drv/laserjet.ppd HP LaserJet Series PCL 4/5
+drv:///sample.drv/deskjet.ppd HP DeskJet Series
+foomatic-db-compressed-ppds:0/ppd/foomatic-ppd/Generic-PCL_6_PCL_XL_Printer-pxlmono.ppd Generic PCL 6/PCL XL Printer Foomatic/pxlmono (recommended)
+drv:///hpcups.drv/hp-laserjet_10200.ppd HP LaserJet 10200, hpcups 3.22.10
+everywhere IPP Everywhere
