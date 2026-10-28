@@ -100,4 +100,14 @@ async function diagnoseStorage(device, ctx) {
   };
 }
 
-module.exports = { diagnoseStorage, linuxDisksFor };
+/** @type {import('./index').Family} */
+const family = {
+  id: 'storage',
+  label: 'Drive',
+  icon: 'storage',
+  sources: ['usb'],
+  match: (d) => (d.categories.includes('storage') ? 80 : 0),
+  diagnose: diagnoseStorage,
+};
+
+module.exports = { family, diagnoseStorage, linuxDisksFor };

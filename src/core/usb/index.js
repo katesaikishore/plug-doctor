@@ -37,6 +37,7 @@ function finalize(d, platform) {
   return {
     ...d,
     id: deviceKey(d),
+    source: 'usb',
     platform,
     vendorName: vendor,
     productName: product,

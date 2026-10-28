@@ -1,0 +1,21 @@
++-o IOUSBHostInterface@0  <class IOUSBHostInterface, id 0x100000b30, registered, matched, active, busy 0 (0 ms), retain 8>
+  | {
+  |   "bInterfaceProtocol" = 2
+  |   "idProduct" = 29987
+  |   "bInterfaceNumber" = 0
+  |   "bInterfaceSubClass" = 1
+  |   "locationID" = 2097152
+  |   "idVendor" = 6790
+  |   "bInterfaceClass" = 255
+  | }
+  | 
+  +-o AppleUSBCHCOM  <class AppleUSBCHCOM, id 0x100000b35, registered, matched, active, busy 0 (0 ms), retain 7>
+    | {
+    |   "IOClass" = "AppleUSBCHCOM"
+    | }
+    | 
+    +-o IOSerialBSDClient  <class IOSerialBSDClient, id 0x100000b38, registered, matched, active, busy 0 (0 ms), retain 6>
+        {
+          "IOCalloutDevice" = "/dev/cu.usbserial-1420"
+          "IODialinDevice" = "/dev/tty.usbserial-1420"
+        }

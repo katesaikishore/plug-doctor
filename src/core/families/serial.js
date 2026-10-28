@@ -91,13 +91,18 @@ async function linuxSerial(device, ctx) {
 async function macSerial(device, ctx) {
   const checks = [];
   const plans = [];
-  let entries = [];
-  try {
-    entries = await (ctx.readDir ?? fs.readdir)('/dev');
-  } catch {
-    entries = [];
+  // ioreg tells us this device's own port; scanning /dev is the fallback
+  // when the interface dump was not available.
+  let ports = device.nodes.filter((n) => /^cu\./.test(n)).map((n) => `/dev/${n}`);
+  if (ports.length === 0 && device.driver.bound !== true) {
+    let entries = [];
+    try {
+      entries = await (ctx.readDir ?? fs.readdir)('/dev');
+    } catch {
+      entries = [];
+    }
+    ports = entries.filter((n) => /^cu\.(usbserial|usbmodem|wchusbserial|SLAB_USBtoUART)/.test(n)).map((n) => `/dev/${n}`);
   }
-  const ports = entries.filter((n) => /^cu\.(usbserial|usbmodem|wchusbserial|SLAB_USBtoUART)/.test(n)).map((n) => `/dev/${n}`);
   const facts = { ports };
   if (ports.length) {
     checks.push(check('port', 'Serial port created', 'pass', ports.join(', ')));
@@ -158,4 +163,14 @@ async function diagnoseSerial(device, ctx) {
 /** Chips that show up as vendor-specific (class ff) but are serial adapters. */
 const SERIAL_CHIP_VENDORS = new Set(['0403', '1a86', '10c4', '067b']);
 
-module.exports = { diagnoseSerial, SERIAL_CHIP_VENDORS };
+/** @type {import('./index').Family} */
+const family = {
+  id: 'serial',
+  label: 'Serial port',
+  icon: 'serial',
+  sources: ['usb'],
+  match: (d) => (d.categories.includes('serial') ? 70 : SERIAL_CHIP_VENDORS.has(d.vendorId) ? 60 : 0),
+  diagnose: diagnoseSerial,
+};
+
+module.exports = { family, diagnoseSerial, SERIAL_CHIP_VENDORS };

@@ -14,9 +14,9 @@ const ALLOWED_PROGRAMS = new Set([
   // packages
   'apt-get', 'dnf', 'pacman', 'zypper', 'brew',
   // linux system plumbing
-  'usermod', 'systemctl', 'modprobe', 'udevadm', 'udisksctl',
+  'usermod', 'systemctl', 'modprobe', 'udevadm', 'udisksctl', 'rfkill', 'bluetoothctl', 'xrandr', 'pactl',
   // windows
-  'pnputil', 'powershell.exe', 'rundll32',
+  'pnputil', 'powershell.exe', 'rundll32', 'explorer.exe',
   // macOS
   'open',
 ]);

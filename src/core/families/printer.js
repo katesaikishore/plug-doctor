@@ -263,4 +263,18 @@ async function diagnosePrinter(device, ctx) {
   return diagnoseCups(device, ctx);
 }
 
-module.exports = { diagnosePrinter, matchCupsDevice };
+/** @type {import('./index').Family} */
+const family = {
+  id: 'printer',
+  label: 'Printer',
+  icon: 'printer',
+  sources: ['usb'],
+  match: (d) => (d.categories.includes('printer') ? 90 : 0),
+  // CUPS talks to USB printers from user space on macOS; on Windows the
+  // spooler does. Only Linux binds a kernel driver (usblp), and even there
+  // CUPS can work without it.
+  userspace: () => true,
+  diagnose: diagnosePrinter,
+};
+
+module.exports = { family, diagnosePrinter, matchCupsDevice };

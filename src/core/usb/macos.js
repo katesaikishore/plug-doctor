@@ -4,7 +4,7 @@ const { hex2 } = require('./classes');
 
 /**
  * Parse `ioreg -l -w0` text output into a flat list of registry entries.
- * Each entry is `{ name, className, props }`. Values are decoded for the
+ * Each entry is `{ name, className, props, depth }`. Values are decoded for the
  * shapes we need (numbers, strings, Yes/No); everything else stays raw text.
  * @param {string} text
  */
@@ -14,7 +14,8 @@ function parseIoreg(text) {
   for (const rawLine of text.split(/\r?\n/)) {
     const head = rawLine.match(/\+-o (.+?)\s+<class ([\w.]+)/);
     if (head) {
-      current = { name: head[1].replace(/@[0-9a-f]+$/i, ''), className: head[2], props: {} };
+      // The column of "+-o" is the entry's depth in the registry tree.
+      current = { name: head[1].replace(/@[0-9a-f]+$/i, ''), className: head[2], props: {}, depth: rawLine.indexOf('+-o') };
       entries.push(current);
       continue;
     }
@@ -34,6 +35,27 @@ function decodeValue(v) {
   return v;
 }
 
+/** Registry entries below `entries[index]` in the tree (its subtree). */
+function subtree(entries, index) {
+  const out = [];
+  for (let i = index + 1; i < entries.length && entries[i].depth > entries[index].depth; i++) out.push(entries[i]);
+  return out;
+}
+
+/**
+ * The driver attached to an interface, from its children in the registry:
+ * the first child that is not a user client or a USB plumbing object. Serial
+ * drivers publish their /dev/cu.* path on an IOSerialBSDClient below them.
+ */
+function interfaceDriver(entries, index) {
+  const below = subtree(entries, index);
+  const directDepth = below.length ? Math.min(...below.map((e) => e.depth)) : 0;
+  const driver = below.find((e) => e.depth === directDepth && !/UserClient$|^IOUSBHost/.test(e.className));
+  const nodes = below.map((e) => e.props.IOCalloutDevice).filter((v) => typeof v === 'string').map((v) => v.replace(/^\/dev\//, ''));
+  const bsd = below.map((e) => e.props['BSD Name']).filter((v) => typeof v === 'string');
+  return { driver: driver?.className ?? null, nodes: [...nodes, ...bsd] };
+}
+
 function vidHex(n) {
   if (n == null) return null;
   return Number(n).toString(16).padStart(4, '0');
@@ -50,7 +72,10 @@ function devicesFromIoreg(devicesText, interfacesText = '') {
   const devs = parseIoreg(devicesText).filter(
     (e) => /IOUSB(Host)?Device/.test(e.className) && e.props.idVendor != null,
   );
-  const itfs = parseIoreg(interfacesText).filter((e) => /IOUSB(Host)?Interface/.test(e.className));
+  const all = parseIoreg(interfacesText);
+  const itfs = all
+    .map((e, index) => ({ ...e, ...(/IOUSB(Host)?Interface/.test(e.className) ? interfaceDriver(all, index) : {}) }))
+    .filter((e) => /IOUSB(Host)?Interface/.test(e.className));
 
   return devs.map((e) => {
     const p = e.props;
@@ -78,13 +103,16 @@ function devicesFromIoreg(devicesText, interfacesText = '') {
         class: hex2(i.props.bInterfaceClass),
         subclass: hex2(i.props.bInterfaceSubClass),
         protocol: hex2(i.props.bInterfaceProtocol),
-        driver: null,
-        nodes: [],
+        driver: i.driver ?? null,
+        nodes: i.nodes ?? [],
       })),
-      nodes: [],
-      // ioreg does not say cleanly whether a kext/dext claimed the device;
-      // category checks (CUPS queue, /dev/cu.* node, mounted volume) decide.
-      driver: { bound: null, names: [], unboundInterfaces: [] },
+      nodes: mine.flatMap((i) => i.nodes ?? []),
+      driver: {
+        // Without the interface dump we cannot tell, so say so rather than guess.
+        bound: mine.length === 0 ? null : mine.some((i) => i.driver),
+        names: [...new Set(mine.map((i) => i.driver).filter(Boolean))],
+        unboundInterfaces: mine.filter((i) => !i.driver).map((i) => (i.props.bInterfaceNumber != null ? String(i.props.bInterfaceNumber) : null)),
+      },
       raw: { ioreg: p },
     };
   });
