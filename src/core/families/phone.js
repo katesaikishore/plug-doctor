@@ -102,6 +102,57 @@ function fileTransferPlan(confidence) {
   });
 }
 
+/** iPhones save photos as HEIC by default, which some computers cannot open. This setting makes the iPhone send JPEG copies. */
+function photoFormatPlan() {
+  return plan({
+    id: 'photo-format',
+    title: 'Let the iPhone send photos in a format your computer opens',
+    why: 'iPhones save photos as HEIC by default. Computers that cannot open HEIC show an error or no picture.',
+    confidence: 0.3,
+    steps: [
+      {
+        kind: 'manual',
+        title: 'Choose Automatically for photo transfer',
+        explain: 'On the iPhone or iPad, go to Settings, then Photos, scroll to Transfer to Mac or PC, and choose Automatically. Then import again.',
+      },
+    ],
+  });
+}
+
+/** Personal Hotspot can share the iPhone's mobile data over the cable. */
+function hotspotPlan() {
+  return plan({
+    id: 'iphone-hotspot',
+    title: 'Share the iPhone\'s internet over the cable',
+    why: 'Personal Hotspot can share the iPhone\'s mobile data over USB. On Windows, Apple Devices must be installed for it to work.',
+    confidence: 0.2,
+    steps: [
+      {
+        kind: 'manual',
+        title: 'Turn on Personal Hotspot',
+        explain: 'On the iPhone, go to Settings, then Personal Hotspot, and turn it on. Keep the iPhone unlocked and plugged in with the cable.',
+      },
+    ],
+  });
+}
+
+/** The file manager can mount an iPhone twice, and the copies can block each other. */
+function duplicateEntryPlan() {
+  return plan({
+    id: 'iphone-duplicate-entry',
+    title: 'Unmount the copy of the iPhone that does not open',
+    why: 'The file manager can show the iPhone twice, once as a camera, and the two copies can block each other.',
+    confidence: 0.3,
+    steps: [
+      {
+        kind: 'manual',
+        title: 'Unmount the copy that does not open',
+        explain: 'In the file manager sidebar, right-click the iPhone entry that does not open and choose Unmount or Eject. Then open the other entry.',
+      },
+    ],
+  });
+}
+
 /** Tethering shares the phone's internet only while USB tethering is switched on in its settings. */
 function tetherPlan() {
   return plan({
@@ -415,7 +466,7 @@ const TRUST_RESET_STEP = {
 };
 
 async function macIos(device, ctx, kind) {
-  return {
+  const result = {
     status: 'ok',
     headline: `macOS supports the ${kind} directly: it appears in the Finder sidebar, and in Photos for importing pictures.`,
     checks: [check('trust', 'Phone trusts this Mac', 'info', `The first time, the ${kind} asks "Trust This Computer?". Tap Trust, or the Mac cannot see its contents.`)],
@@ -431,6 +482,8 @@ async function macIos(device, ctx, kind) {
     facts: { phone: 'ios', kind },
     support: { level: 'native' },
   };
+  result.plans.push(photoFormatPlan());
+  return result;
 }
 
 async function linuxIos(device, ctx, kind) {
@@ -489,6 +542,7 @@ async function linuxIos(device, ctx, kind) {
   if (pair.ok && /SUCCESS/.test(out)) {
     checks.push(check('trust', 'Phone trusts this computer', 'pass'));
     checks.push(check('files', 'Opening files', 'info', 'Photos open in the file manager. App documents can be mounted with ifuse.'));
+    plans.push(duplicateEntryPlan());
     return { status: 'ok', headline: `Ready: the ${kind} trusts this computer.`, checks, plans, facts };
   }
   const detail = /passcode/i.test(out)
@@ -551,7 +605,7 @@ async function windowsIos(device, ctx, kind) {
     return { status: 'ok', headline: `Ready: photos are in File Explorer, and Apple Devices can back up the ${kind}.`, checks, plans, facts };
   }
   checks.push(check('apple-driver', 'Apple\'s driver installed', 'info', 'Photos are available in File Explorer without it. To back up or sync, install Apple Devices.'));
-  plans.push(appleDevicesPlan(0.5), startAppleServicePlan());
+  plans.push(appleDevicesPlan(0.5), startAppleServicePlan(), photoFormatPlan(), hotspotPlan());
   return { status: 'ok', headline: `Photos on the ${kind} are available in File Explorer.`, checks, plans, facts };
 }
 

@@ -303,6 +303,30 @@ test('iPhone on Windows that Apple Devices cannot use: offer to start the Apple 
   assertRunnable(r);
 });
 
+test('iPhone on Windows that is ready: the photo format and hotspot steps are offered', async () => {
+  const d = { ...iphone(), platform: 'win32' };
+  const r = await diagnose(d, { platform: 'win32', run: fakeRun([]), manager: null });
+  assert.ok(r.plans.some((p) => p.id === 'photo-format'));
+  assert.ok(r.plans.some((p) => p.id === 'iphone-hotspot'));
+  assertRunnable(r);
+});
+
+test('iPhone on a Mac: the photo format step is offered', async () => {
+  const r = await diagnose(iphone(), { platform: 'darwin', run: fakeRun([]), manager: null });
+  assert.equal(r.status, 'ok');
+  assert.ok(r.plans.some((p) => p.id === 'photo-format'));
+});
+
+test('iPhone trusted on Linux with a doubled file-manager entry: unmount the copy that does not open', async () => {
+  const run = fakeRun([
+    ['idevice_id -l', '00008030-001A2B3C4D5E802E\n'],
+    ['idevicepair validate', { ok: true, code: 0, stdout: 'SUCCESS: Validated pairing with device 00008030-001A2B3C4D5E802E\n' }],
+  ]);
+  const r = await diagnose(iphone(), { platform: 'linux', run, manager: apt });
+  assert.equal(r.status, 'ok');
+  assert.ok(r.plans.some((p) => p.id === 'iphone-duplicate-entry'));
+});
+
 test('other Apple devices are not phones', () => {
   const kb = usb({ vendorId: '05ac', productId: '024f', productName: 'Aluminium Keyboard (ANSI)', interfaces: [itf('00', '03', '01', '01', { driver: 'usbhid' })] });
   assert.notEqual(familyFor(kb).id, 'phone');
