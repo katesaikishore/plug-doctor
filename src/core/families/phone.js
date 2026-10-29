@@ -96,7 +96,7 @@ const FILE_TRANSFER_STEP = {
 const NO_NOTIFICATION_STEP = {
   kind: 'manual',
   title: 'If no USB notification appears',
-  explain: 'Open Settings and search for "USB", then choose File transfer. Or turn on Developer options (tap Build number seven times under About phone), open Developer options, and choose File transfer (MTP) under Select USB configuration. Menu names vary by brand.',
+  explain: 'Open Settings and search for "USB", then choose File transfer. On some Sony phones the route is Settings, then Connected devices, then USB. Or turn on Developer options (tap Build number seven times under About phone), open Developer options, and choose File transfer (MTP) under Select USB configuration. Menu names vary by brand.',
 };
 
 function fileTransferPlan(confidence) {
@@ -457,6 +457,9 @@ async function macAndroid(device, ctx, m) {
       : check('mtp-app', 'Android file transfer app installed', 'warn', 'No Android file transfer app was found. macOS needs one to open the phone\'s files.'),
   );
   if (hasApp) plans.push(cameraHelpersPlan());
+  if (device.vendorId === '1004') {
+    checks.push(check('lg-bridge', 'LG\'s own tool', 'info', 'LG Bridge is LG\'s own tool. It does not support every LG phone, so if it cannot connect, check LG\'s support list for your model.'));
+  }
   if (m.mode === 'photo-transfer') {
     checks.push(check('photos', 'Photo import', 'info', 'In photo transfer mode, the Photos and Image Capture apps can import pictures without any extra app.'));
   }
