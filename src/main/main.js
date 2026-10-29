@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('node:path');
-const { app, BrowserWindow, ipcMain, shell, clipboard, Notification, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, clipboard, Notification, Tray, Menu, nativeImage, nativeTheme } = require('electron');
 const { DeviceWatcher } = require('../core/usb/watcher');
 const { createInventory } = require('../core/sources');
 const { diagnose } = require('../core/diagnose');
@@ -127,6 +127,13 @@ async function applyPlan(deviceId, plan) {
   }
 }
 
+/** Light, dark, or whatever the computer uses. The page follows through prefers-color-scheme. */
+function applyTheme(theme) {
+  nativeTheme.themeSource = theme === 'light' || theme === 'dark' ? theme : 'system';
+}
+
+const windowBackground = () => (nativeTheme.shouldUseDarkColors ? '#0b0d11' : '#f4f5f8');
+
 function notify(title, body) {
   if (Notification.isSupported()) new Notification({ title, body, icon: ICON }).show();
 }
@@ -169,7 +176,7 @@ function createWindow() {
     minHeight: 520,
     title: 'Plug Doctor',
     icon: ICON,
-    backgroundColor: '#0f1115',
+    backgroundColor: windowBackground(),
     show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -283,7 +290,9 @@ function registerIpc() {
   ipcMain.handle('settings:get', () => settings.publicView());
   ipcMain.handle('settings:update', (_e, patch) => {
     // getAssistant() rebuilds the assistant when the key or web setting changes; other changes keep its memory.
-    return settings.update(patch ?? {});
+    const next = settings.update(patch ?? {});
+    applyTheme(next.theme);
+    return next;
   });
   ipcMain.handle('assistant:send', async (_e, text, deviceId) => {
     if (!settings.load().assistantEnabled) throw new Error('The assistant is turned off in Settings.');
@@ -316,6 +325,8 @@ if (!app.requestSingleInstanceLock()) {
   app.on('second-instance', () => win?.show());
   app.whenReady().then(async () => {
     registerIpc();
+    applyTheme(settings.load().theme);
+    nativeTheme.on('updated', () => win?.setBackgroundColor(windowBackground()));
     createWindow();
     createTray();
     watcher.on('change', (devices) => send('devices', devices));

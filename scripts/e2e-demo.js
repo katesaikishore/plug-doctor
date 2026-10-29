@@ -125,6 +125,23 @@ async function run() {
     await win.click('#settings-form >> button[value="save"]');
     await win.waitForTimeout(400);
 
+    // The theme button cycles to Dark, and the page really turns dark. Playwright
+    // pins pages to the light scheme, so lift that and let the app's setting decide.
+    await win.emulateMedia({ colorScheme: null });
+    const themeBefore = (await win.evaluate(() => window.plugDoctor.getSettings())).theme;
+    for (let i = 0; i < 3; i++) {
+      if ((await win.evaluate(() => window.plugDoctor.getSettings())).theme === 'dark') break;
+      await win.click('#theme-toggle');
+      await win.waitForTimeout(400);
+    }
+    const background = await win.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    const [r, g, b] = (background.match(/\d+/g) ?? []).map(Number);
+    check('the theme button switches to dark', r + g + b < 120, background);
+    await win.screenshot({ path: path.join(OUT, 'dark.png') });
+    await win.evaluate((t) => window.plugDoctor.updateSettings({ theme: t }), themeBefore);
+    await win.emulateMedia({ colorScheme: 'light' });
+    await win.waitForTimeout(300);
+
     await win.setViewportSize({ width: 760, height: 520 });
     await win.waitForTimeout(400);
     const overflow = await win.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);

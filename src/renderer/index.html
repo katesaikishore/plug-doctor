@@ -17,6 +17,7 @@
         <span class="brand-name">Plug Doctor</span>
       </div>
       <div class="watching" id="watching"><span class="pulse"></span>Watching for devices</div>
+      <button class="icon-btn" id="theme-toggle" title="Theme" aria-label="Theme"></button>
       <button class="icon-btn" id="open-settings" title="Settings" aria-label="Settings"></button>
     </header>
 
@@ -58,6 +59,14 @@
             <small>Smart TVs, AirPlay and Chromecast receivers, network printers and scanners. Nothing leaves your home network. macOS may ask you to allow this once.</small>
           </span>
         </label>
+        <div class="field">
+          <span><strong>Appearance</strong></span>
+          <div class="segmented" role="radiogroup" aria-label="Appearance">
+            <label><input type="radio" name="theme" value="system" /><span>Same as computer</span></label>
+            <label><input type="radio" name="theme" value="light" /><span>Light</span></label>
+            <label><input type="radio" name="theme" value="dark" /><span>Dark</span></label>
+          </div>
+        </div>
         <label class="field">
           <span><strong>Anthropic API key</strong> <small id="key-status"></small></span>
           <input type="password" name="apiKey" autocomplete="off" placeholder="sk-ant-..." />

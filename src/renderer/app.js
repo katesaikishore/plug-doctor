@@ -20,33 +20,45 @@ function h(tag, attrs = {}, ...children) {
 
 const $ = (sel) => document.querySelector(sel);
 
-const svg = (body) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
+const svg = (body) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
 const ICONS = {
-  printer: svg('<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>'),
-  storage: svg('<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M10 6h4M10 9h4"/>'),
-  serial: svg('<rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 11h.01M10 11h.01M13 11h.01M16 11h.01M8.5 14h.01M11.5 14h.01M14.5 14h.01"/>'),
-  input: svg('<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>'),
-  camera: svg('<path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.5"/>'),
-  audio: svg('<path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="5" height="6" rx="1.5"/><rect x="16" y="14" width="5" height="6" rx="1.5"/>'),
-  wireless: svg('<path d="M7 7l10 10-5 5V2l5 5L7 17"/>'),
-  network: svg('<rect x="9" y="2" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="16" y="16" width="6" height="6" rx="1"/><path d="M12 8v4M5 16v-2h14v2"/>'),
-  unknown: svg('<path d="M10 2v5H7v6a5 5 0 0 0 10 0V7h-3V2"/><path d="M12 18v4"/>'),
-  gear: svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'),
-  plug: svg('<path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0z"/><path d="M12 18v4"/>'),
-  display: svg('<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>'),
-  tv: svg('<rect x="2" y="6" width="20" height="13" rx="2"/><path d="M8 2l4 4 4-4"/>'),
-  bluetooth: svg('<path d="M7 7l10 10-5 5V2l5 5L7 17"/>'),
-  headphones: svg('<path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="2" y="14" width="5" height="7" rx="2"/><rect x="17" y="14" width="5" height="7" rx="2"/>'),
-  speaker: svg('<rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="14" r="4"/><path d="M12 6h.01"/>'),
-  phone: svg('<rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/>'),
-  scanner: svg('<path d="M3 13h18v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M5 13l3-8h11"/><path d="M7 17h.01"/>'),
-  gamepad: svg('<path d="M6 8h12a4 4 0 0 1 4 4l-1 5a2.5 2.5 0 0 1-4.5 1L15 16H9l-1.5 2A2.5 2.5 0 0 1 3 17l-1-5a4 4 0 0 1 4-4z"/><path d="M7 11v3M5.5 12.5h3M16 12h.01M18 13.5h.01"/>'),
-  adapter: svg('<path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M2 9a15 15 0 0 1 20 0"/><path d="M12 19.5h.01"/>'),
-  cast: svg('<path d="M2 16a6 6 0 0 1 6 6M2 12a10 10 0 0 1 10 10M2 20h.01"/><path d="M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/>'),
-  keyboard: svg('<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>'),
-  mouse: svg('<rect x="6" y="2" width="12" height="20" rx="6"/><path d="M12 6v4"/>'),
-  tablet: svg('<path d="M3 21l3-1 11-11-2-2L4 18z"/><path d="M14 6l2-2 4 4-2 2"/>'),
-  'smart-home': svg('<path d="M3 11l9-8 9 8v10H3z"/><path d="M9 21v-6h6v6"/>'),
+  printer: svg('<path d="M7 8V3.5h10V8"/><rect x="3" y="8" width="18" height="9" rx="2.5"/><rect x="7" y="14" width="10" height="6.5" rx="1"/><path d="M17.5 11h.01"/>'),
+  storage: svg('<path d="M5.6 5h12.8l2.6 7.5V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4.5z"/><path d="M3 12.5h18"/><path d="M7 15.75h.01M10.5 15.75h.01"/>'),
+  serial: svg('<rect x="6" y="6" width="12" height="12" rx="2.5"/><path d="M9.5 2.5V6M14.5 2.5V6M9.5 18v3.5M14.5 18v3.5M2.5 9.5H6M2.5 14.5H6M18 9.5h3.5M18 14.5h3.5"/>'),
+  input: svg('<rect x="2.5" y="6" width="19" height="12" rx="3"/><path d="M6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M8 14h8"/>'),
+  camera: svg('<circle cx="12" cy="10" r="6.5"/><circle cx="12" cy="10" r="2.5"/><path d="M12 16.5v4M8 20.5h8"/>'),
+  audio: svg('<path d="M3.5 14.5V12a8.5 8.5 0 0 1 17 0v2.5"/><rect x="3" y="14" width="4.5" height="6.5" rx="2"/><rect x="16.5" y="14" width="4.5" height="6.5" rx="2"/>'),
+  bluetooth: svg('<path d="m7 7 10 10-5 5V2l5 5L7 17"/>'),
+  network: svg('<rect x="3" y="13.5" width="18" height="7" rx="2.5"/><path d="M7 17h.01M10.5 17h.01"/><path d="M8.5 9.5a5 5 0 0 1 7 0M6 7a8.5 8.5 0 0 1 12 0"/>'),
+  adapter: svg('<path d="M2.5 8.5a13.5 13.5 0 0 1 19 0M5.5 12a9 9 0 0 1 13 0M8.5 15.5a4.5 4.5 0 0 1 7 0"/><path d="M12 19h.01"/>'),
+  unknown: svg('<path d="M12 3v13.5"/><path d="m9.5 5.5 2.5-2.5 2.5 2.5"/><path d="M12 13 8 11V8.5M12 15l4-2v-2.5"/><circle cx="12" cy="19" r="2"/>'),
+  gear: svg('<path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/>'),
+  plug: svg('<path d="M9 2.5V7M15 2.5V7"/><path d="M6 7h12v3.5a6 6 0 0 1-12 0z"/><path d="M12 16.5v5"/>'),
+  display: svg('<rect x="2.5" y="4" width="19" height="13" rx="2.5"/><path d="M8.5 21h7M12 17v4"/>'),
+  tv: svg('<rect x="2.5" y="7" width="19" height="13" rx="2.5"/><path d="m8 3 4 4 4-4"/>'),
+  speaker: svg('<rect x="5" y="2.5" width="14" height="19" rx="3"/><circle cx="12" cy="14.5" r="3.5"/><path d="M12 7h.01"/>'),
+  phone: svg('<rect x="6.5" y="2.5" width="11" height="19" rx="3"/><path d="M11 18.5h2"/>'),
+  scanner: svg('<rect x="3" y="12" width="18" height="8" rx="2.5"/><path d="M5 12l3-7h11.5"/><path d="M7 16h.01M11 16h6"/>'),
+  gamepad: svg('<rect x="2.5" y="7" width="19" height="11" rx="5.5"/><path d="M7.5 10.5v3M6 12h3M15.5 11.5h.01M17.5 13.5h.01"/>'),
+  cast: svg('<path d="M2.5 16a5.5 5.5 0 0 1 5.5 5.5M2.5 12a9.5 9.5 0 0 1 9.5 9.5M2.5 20.5h.01"/><path d="M2.5 8V6.5A2.5 2.5 0 0 1 5 4h14a2.5 2.5 0 0 1 2.5 2.5v11A2.5 2.5 0 0 1 19 20h-4.5"/>'),
+  mouse: svg('<rect x="6" y="2.5" width="12" height="19" rx="6"/><path d="M12 6.5v3.5"/>'),
+  tablet: svg('<path d="M3 21l3.5-1L18 8.5 15.5 6 4 17.5z"/><path d="m14 7.5 2.5 2.5M15.5 6l2-2 2.5 2.5-2 2"/>'),
+  'smart-home': svg('<path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9.5 20.5v-6h5v6"/>'),
+  sun: svg('<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>'),
+  moon: svg('<path d="M20.5 14.2A8.5 8.5 0 1 1 9.8 3.5a6.8 6.8 0 0 0 10.7 10.7z"/>'),
+};
+// Same pictures under the other names families use.
+ICONS.headphones = ICONS.audio;
+ICONS.keyboard = ICONS.input;
+ICONS.wireless = ICONS.bluetooth;
+
+/** Small marks for checks and steps: drawn, so they stay crisp at any size. */
+const mark = (body) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
+const MARKS = {
+  pass: mark('<path d="m5 12.5 4.5 4.5L19 7.5"/>'),
+  warn: mark('<path d="M12 6v7.5M12 18h.01"/>'),
+  fail: mark('<path d="M7 7l10 10M17 7 7 17"/>'),
+  info: mark('<path d="M12 11v6.5M12 6.5h.01"/>'),
 };
 /** Other names families may use for the same pictures. */
 const ICON_ALIASES = { airplay: 'cast', 'network-device': 'network', 'network-adapter': 'adapter', wifi: 'adapter', ethernet: 'adapter', monitor: 'display', controller: 'gamepad', 'game-controller': 'gamepad', webcam: 'camera', midi: 'audio', usb: 'plug', generic: 'unknown', drive: 'storage' };
@@ -60,7 +72,6 @@ function iconFor(...keys) {
 }
 
 const STATUS_TEXT = { ok: 'Working', 'needs-fix': 'Needs a fix', broken: 'Not working', unknown: 'Connected', idle: 'Not connected', checking: 'Checking…' };
-const CHECK_MARK = { pass: '✓', warn: '!', fail: '✕', info: 'i' };
 
 /** A command as a person would type it. Arguments with spaces or symbols are quoted. */
 function commandLine(s) {
@@ -156,10 +167,22 @@ function renderList() {
 }
 
 function select(id) {
-  if (state.selected !== id) $('#detail').scrollTop = 0;
+  const changed = state.selected !== id;
+  if (changed) $('#detail').scrollTop = 0;
   state.selected = id;
   renderList();
   renderDetail();
+  if (changed) animateDetail();
+}
+
+/** One short entrance when the person picks a device. */
+function animateDetail() {
+  const root = $('#detail');
+  root.classList.remove('enter');
+  void root.offsetWidth; // restart the animation
+  root.classList.add('enter');
+  clearTimeout(animateDetail.timer);
+  animateDetail.timer = setTimeout(() => root.classList.remove('enter'), 400);
 }
 
 // ---------------------------------------------------------------- detail
@@ -301,10 +324,17 @@ function renderFixTab(d, r) {
     h(
       'ul',
       { class: 'checks' },
-      r.checks.map((c) => h('li', { class: `check ${c.status}` }, h('span', { class: 'mark' }, CHECK_MARK[c.status]), h('span', {}, h('strong', {}, c.label), c.detail ? h('span', { class: 'check-detail' }, c.detail) : null))),
+      r.checks.map((c) => h('li', { class: `check ${c.status}` }, h('span', { class: 'mark', html: MARKS[c.status] ?? MARKS.info }), h('span', {}, h('strong', {}, c.label), c.detail ? h('span', { class: 'check-detail' }, c.detail) : null))),
     ),
   );
   return parts;
+}
+
+/** The circle beside a step: its number, a spinner while it runs, or a mark when it has finished. */
+function stepState(st, i) {
+  if (st === 'running') return h('span', { class: 'step-state' }, h('span', { class: 'spinner' }));
+  const icon = { done: MARKS.pass, failed: MARKS.fail, waiting: MARKS.warn }[st];
+  return icon ? h('span', { class: 'step-state', html: icon }) : h('span', { class: 'step-state' }, String(i + 1));
 }
 
 function renderPlan(d, plan, recommended, prog) {
@@ -314,7 +344,7 @@ function renderPlan(d, plan, recommended, prog) {
     return h(
       'li',
       { class: `step ${st}` },
-      h('span', { class: 'step-state' }, { running: '…', done: '✓', failed: '✕', waiting: '!' }[st] ?? String(i + 1)),
+      stepState(st, i),
       h(
         'div',
         {},
@@ -607,6 +637,7 @@ async function openSettings() {
   form.assistantEnabled.checked = s.assistantEnabled;
   form.webResearch.checked = s.webResearch;
   form.scanNetwork.checked = s.scanNetwork;
+  form.theme.value = s.theme ?? 'system';
   form.apiKey.value = '';
   $('#key-status').textContent = s.hasApiKey ? '(saved — leave empty to keep it)' : '(not set)';
   $('#settings-error').hidden = true;
@@ -621,10 +652,11 @@ $('#settings-form').addEventListener('submit', async (e) => {
   if (e.submitter?.id !== 'settings-save') return;
   e.preventDefault();
   const form = e.target;
-  const patch = { autoFix: form.autoFix.checked, assistantEnabled: form.assistantEnabled.checked, webResearch: form.webResearch.checked, scanNetwork: form.scanNetwork.checked };
+  const patch = { autoFix: form.autoFix.checked, assistantEnabled: form.assistantEnabled.checked, webResearch: form.webResearch.checked, scanNetwork: form.scanNetwork.checked, theme: form.theme.value };
   if (form.apiKey.value.trim()) patch.apiKey = form.apiKey.value.trim();
   try {
     state.settings = await plugDoctor.updateSettings(patch);
+    paintThemeButton();
     $('#settings').close();
     renderDetail();
   } catch (err) {
@@ -720,6 +752,24 @@ plugDoctor.onAssistant((e) => {
 // ---------------------------------------------------------------- boot
 
 $('#open-settings').innerHTML = ICONS.gear;
+
+const THEMES = ['system', 'light', 'dark'];
+const THEME_LABEL = { system: 'Appearance: same as your computer', light: 'Appearance: light', dark: 'Appearance: dark' };
+
+function paintThemeButton() {
+  const theme = state.settings.theme ?? 'system';
+  const btn = $('#theme-toggle');
+  btn.innerHTML = { system: ICONS.display, light: ICONS.sun, dark: ICONS.moon }[theme] ?? ICONS.display;
+  btn.title = THEME_LABEL[theme];
+  btn.setAttribute('aria-label', THEME_LABEL[theme]);
+}
+
+$('#theme-toggle').addEventListener('click', async () => {
+  const next = THEMES[(THEMES.indexOf(state.settings.theme ?? 'system') + 1) % THEMES.length];
+  state.settings = await plugDoctor.updateSettings({ theme: next });
+  paintThemeButton();
+  toast(THEME_LABEL[next]);
+});
 $('#open-settings').addEventListener('click', openSettings);
 $('#quit-app').addEventListener('click', () => plugDoctor.quit());
 // The app hides its menu bar, so Ctrl+Q (Cmd+Q on a Mac) is how a person quits it.
@@ -730,6 +780,7 @@ document.body.dataset.platform = plugDoctor.platform;
 
 (async () => {
   state.settings = await plugDoctor.getSettings();
+  paintThemeButton();
   const { devices, diagnoses, sources } = await plugDoctor.listDevices();
   if (sources?.length) state.sources = sources;
   state.devices = devices;

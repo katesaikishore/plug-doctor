@@ -14,8 +14,11 @@ const DEFAULTS = {
   assistantEnabled: true,
   webResearch: true,
   scanNetwork: true,
+  theme: 'system', // 'system', 'light' or 'dark'
   apiKeyEncrypted: null,
 };
+
+const THEMES = ['system', 'light', 'dark'];
 
 function file() {
   return path.join(app.getPath('userData'), 'settings.json');
@@ -57,6 +60,7 @@ function update(patch) {
   for (const key of ['autoFix', 'assistantEnabled', 'webResearch', 'scanNetwork']) {
     if (typeof patch[key] === 'boolean') s[key] = patch[key];
   }
+  if (THEMES.includes(patch.theme)) s.theme = patch.theme;
   if (typeof patch.apiKey === 'string') {
     const key = patch.apiKey.trim();
     if (!key) s.apiKeyEncrypted = null;
