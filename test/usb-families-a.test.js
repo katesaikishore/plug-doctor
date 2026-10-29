@@ -327,6 +327,47 @@ test('iPhone trusted on Linux with a doubled file-manager entry: unmount the cop
   assert.ok(r.plans.some((p) => p.id === 'iphone-duplicate-entry'));
 });
 
+test('a Mac with a phone in USB tethering mode is offered the Wi-Fi hotspot, not USB tethering', async () => {
+  const tethering = itf('02', 'e0', '01', '03', { name: 'RNDIS' });
+  const r = await diagnose(pixel([tethering]), { platform: 'darwin', run: fakeRun([]), manager: null, ...noGvfs });
+  assert.ok(r.plans.some((p) => p.id === 'wifi-hotspot'));
+  assert.ok(!r.plans.some((p) => p.id === 'usb-tethering'), 'a Mac cannot use USB tethering');
+  assert.match(r.headline, /Mac cannot use/);
+  assertRunnable(r);
+});
+
+test('a Windows phone with a device error also gets the wireless route', async () => {
+  const d = { ...pixel([{ ...MTP, windowsClass: 'WPD', problem: 28 }]), platform: 'win32', problem: { code: 28, message: 'No driver is installed for this device (Code 28).' } };
+  const r = await diagnose(d, { platform: 'win32', run: fakeRun([]), manager: null });
+  assert.ok(r.plans.some((p) => p.id === 'windows-wireless'));
+  assertRunnable(r);
+});
+
+test('adb says offline: reconnect the phone, then restart adb if it stays offline', async () => {
+  const run = fakeRun([['adb devices', 'List of devices attached\n28031FDH2000AB\toffline\n']]);
+  const r = await diagnose(pixel([MTP, ADB]), { platform: 'linux', run, manager: apt, ...gvfs });
+  const offline = r.plans.find((p) => p.id === 'adb-offline');
+  assert.ok(offline, 'the reconnect plan is offered');
+  assert.match(offline.steps[0].explain, /adb kill-server/);
+});
+
+test('iPhone trusted on Linux but the account is not in the fuse group: offer to join it', async () => {
+  const run = fakeRun([
+    ['idevice_id -l', '00008030-001A2B3C4D5E802E\n'],
+    ['idevicepair validate', { ok: true, code: 0, stdout: 'SUCCESS: Validated pairing\n' }],
+    ['id -nG', 'user adm dialout cdrom\n'],
+  ]);
+  const r = await diagnose(iphone(), { platform: 'linux', run, manager: apt });
+  assert.ok(r.plans.some((p) => p.id === 'ifuse-fuse-group'));
+  assertRunnable(r);
+});
+
+test('a phone that only charges offers the no-notification route as its second step', async () => {
+  const r = await diagnose(pixel([]), { platform: 'linux', run: fakeRun([]), manager: apt, ...noGvfs });
+  const transfer = r.plans.find((p) => p.id === 'choose-file-transfer');
+  assert.equal(transfer.steps[1].title, 'If no USB notification appears');
+});
+
 test('other Apple devices are not phones', () => {
   const kb = usb({ vendorId: '05ac', productId: '024f', productName: 'Aluminium Keyboard (ANSI)', interfaces: [itf('00', '03', '01', '01', { driver: 'usbhid' })] });
   assert.notEqual(familyFor(kb).id, 'phone');

@@ -89,7 +89,14 @@ async function fileExists(p) {
 const FILE_TRANSFER_STEP = {
   kind: 'manual',
   title: 'Choose "File transfer" on the phone',
-  explain: 'On your phone, pull down the notification shade, tap the USB notification and choose File transfer. Unlock the phone first if it asks.',
+  explain: 'Unlock the phone, pull down the notification shade and tap the USB notification ("Charging this device via USB"). If it offers more options, tap "Tap for more options" first. Then choose File transfer under "Use USB for".',
+};
+
+// Some phones show no USB notification at all. Google and the OpenMTP guide both give these routes.
+const NO_NOTIFICATION_STEP = {
+  kind: 'manual',
+  title: 'If no USB notification appears',
+  explain: 'Open Settings and search for "USB", then choose File transfer. Or turn on Developer options (tap Build number seven times under About phone), open Developer options, and choose File transfer (MTP) under Select USB configuration. Menu names vary by brand.',
 };
 
 function fileTransferPlan(confidence) {
@@ -98,7 +105,7 @@ function fileTransferPlan(confidence) {
     title: 'Turn on file transfer on the phone',
     why: 'Android phones connect for charging only until you allow file transfer on the phone itself. That protects your files when you plug into a public charger.',
     confidence,
-    steps: [FILE_TRANSFER_STEP],
+    steps: [FILE_TRANSFER_STEP, NO_NOTIFICATION_STEP],
   });
 }
 
@@ -153,6 +160,82 @@ function duplicateEntryPlan() {
   });
 }
 
+/** A Mac cannot use USB tethering. A Wi-Fi hotspot on the phone shares its internet with any computer. */
+function wifiHotspotPlan() {
+  return plan({
+    id: 'wifi-hotspot',
+    title: 'Share the phone\'s internet over Wi-Fi instead',
+    why: 'macOS cannot use the phone\'s internet over the cable. A Wi-Fi hotspot works with a Mac.',
+    confidence: 0.5,
+    steps: [
+      {
+        kind: 'manual',
+        title: 'Turn on the Wi-Fi hotspot',
+        explain: 'On an Android phone, open Settings, then Network & internet (or Connections), then Hotspot & tethering, and turn on Wi-Fi hotspot. Then connect the Mac to the phone\'s network. Menu names vary by brand.',
+      },
+    ],
+  });
+}
+
+/** OpenMTP and macOS' camera helpers can hold the phone; the person quits them, Plug Doctor never force-quits anything. */
+function cameraHelpersPlan() {
+  return plan({
+    id: 'quit-camera-helpers',
+    title: 'Quit the programs that may hold the phone',
+    why: 'Mac camera helpers and other phone apps can keep the phone to themselves, so OpenMTP cannot see it.',
+    confidence: 0.2,
+    steps: [
+      {
+        kind: 'manual',
+        title: 'Quit the other phone apps',
+        explain: 'Quit Preview, Image Capture, Photos, Google Drive, Dropbox, OneDrive and Android File Transfer if they are open. If OpenMTP still cannot see the phone, open Activity Monitor from Applications, then Utilities, search for ptpcamerad or mscamerad-xpc, and choose Force Quit. Unplug the phone, plug it back in, and tap Refresh in OpenMTP.',
+      },
+    ],
+  });
+}
+
+/** Windows 11 can show an Android phone in File Explorer over the wireless link when the cable route fails. */
+function wirelessPlan() {
+  return plan({
+    id: 'windows-wireless',
+    title: 'Show the phone in File Explorer without the cable',
+    why: 'When the cable route will not work, Windows 11 can show an Android phone in File Explorer over the wireless link. Only one mobile device can show at a time.',
+    confidence: 0.3,
+    steps: [
+      {
+        kind: 'manual',
+        title: 'Turn on the wireless route in Windows',
+        explain: 'On Windows 11, open Settings, then Bluetooth & devices, then Mobile devices, then Manage devices, and choose Show mobile device in File Explorer. Files you delete go to the Recycle bin for the connected device, and stay there for 30 days.',
+      },
+    ],
+  });
+}
+
+/** ifuse mounts an iPhone through FUSE, so the account must be in the fuse group. Adding a group only adds access. */
+function fuseGroupPlan() {
+  const steps = [];
+  const user = os.userInfo().username;
+  if (/^[a-z_][a-z0-9_-]*$/.test(user)) {
+    steps.push({
+      kind: 'command',
+      title: 'Let your account mount the iPhone with ifuse',
+      explain: 'Adds your account to the fuse group, which ifuse needs.',
+      cmd: 'usermod',
+      args: ['-aG', 'fuse', user],
+      admin: true,
+      safe: true,
+    });
+  }
+  steps.push({ kind: 'manual', title: 'Log out, log back in, then plug the iPhone in again', explain: 'The new group applies after you log in again. Then press "Check again".' });
+  return plan({
+    id: 'ifuse-fuse-group',
+    title: 'Let your account mount the iPhone with ifuse',
+    why: 'ifuse reads the iPhone through FUSE, and only members of the fuse group may use it.',
+    confidence: 0.4,
+    steps,
+  });
+}
+
 /** Tethering shares the phone's internet only while USB tethering is switched on in its settings. */
 function tetherPlan() {
   return plan({
@@ -177,7 +260,7 @@ function cablePlan() {
     title: 'Try a different USB cable and port',
     why: 'Some cables only charge and carry no data. Plug straight into a port on the computer, not a hub, and use the cable that came with the phone if you can.',
     confidence: 0.4,
-    steps: [{ kind: 'manual', title: 'Swap the cable and port', explain: 'Unplug the phone and try the cable that came with it, or another known data cable, in a port on the computer itself. Then choose File transfer again.' }],
+    steps: [{ kind: 'manual', title: 'Swap the cable and port', explain: 'Unplug the phone and try the cable that came with it (or the maker\'s own cable), in a port on the computer itself. Make sure the cable and the port are dry. Then choose File transfer again.' }],
   });
 }
 
@@ -206,14 +289,14 @@ function mtpDriverPlan(device) {
     {
       kind: 'open-url',
       title: 'Get your phone maker\'s USB driver, if it has one',
-      explain: 'Find your phone\'s maker in the table, install the driver it names, then try again.',
+      explain: 'Find your phone\'s maker in the table, install the driver it names, then try again. If your maker is not in the table, search its support site for a USB driver. OnePlus and Nothing phones are not in the table.',
       url: OEM_USB_URL,
     },
   );
   return plan({
     id: 'mtp-driver',
     title: 'Install the right Windows driver for the phone',
-    why: 'Windows usually sets up phones on its own. When it cannot, its built-in MTP driver or the maker\'s driver lets File Explorer show the phone\'s files.',
+    why: 'Windows usually sets up phones on its own, with a built-in MTP driver that shows the phone\'s files. Maker drivers are mainly for developers using adb. When Windows cannot load the built-in driver, picking it by hand usually fixes it.',
     confidence: 0.5,
     steps,
   });
@@ -250,6 +333,11 @@ function startAppleServicePlan() {
         admin: true,
         safe: true,
         optional: true,
+      },
+      {
+        kind: 'manual',
+        title: 'If it stops again, set its Startup type to Automatic',
+        explain: 'In services.msc, double-click Apple Mobile Device Service, set Startup type to Automatic, and click OK. Plug Doctor does not change the Startup type.',
       },
     ],
   });
@@ -368,13 +456,14 @@ async function macAndroid(device, ctx, m) {
       ? check('mtp-app', 'Android file transfer app installed', 'pass', 'OpenMTP is installed. Only one app can talk to the phone at a time, so quit other phone apps if OpenMTP cannot see it.')
       : check('mtp-app', 'Android file transfer app installed', 'warn', 'No Android file transfer app was found. macOS needs one to open the phone\'s files.'),
   );
+  if (hasApp) plans.push(cameraHelpersPlan());
   if (m.mode === 'photo-transfer') {
     checks.push(check('photos', 'Photo import', 'info', 'In photo transfer mode, the Photos and Image Capture apps can import pictures without any extra app.'));
   }
 
   const noFiles = m.mode === 'charge-only' || m.mode === 'tethering';
   if (noFiles) plans.push(fileTransferPlan(m.mode === 'charge-only' ? 0.9 : 0.3));
-  if (!hasApp) {
+  if (!hasApp && m.mode !== 'tethering') {
     plans.push(
       plan({
         id: 'install-openmtp',
@@ -394,11 +483,12 @@ async function macAndroid(device, ctx, m) {
     plans.push(cablePlan());
     return { status: 'needs-fix', headline: 'The phone is connected for charging only. Allow file transfer on the phone to see its files.', checks, plans, facts, support };
   }
-  if (!hasApp) return { status: 'needs-fix', headline: 'macOS needs a free app to open Android phones. Plug Doctor can point you to one.', checks, plans, facts, support };
   if (m.mode === 'tethering') {
-    plans.push(tetherPlan());
-    return { status: 'ok', headline: 'The phone is sharing its internet connection over USB.', checks, plans, facts, support };
+    // macOS cannot use USB tethering, so the Wi-Fi hotspot is the route that works.
+    plans.push(wifiHotspotPlan());
+    return { status: 'ok', headline: 'This phone is sharing its internet over USB, which a Mac cannot use. Share it through a Wi-Fi hotspot instead.', checks, plans, facts, support };
   }
+  if (!hasApp) return { status: 'needs-fix', headline: 'macOS needs a free app to open Android phones. Plug Doctor can point you to one.', checks, plans, facts, support };
   return { status: 'ok', headline: 'Ready: open OpenMTP to see the phone\'s files.', checks, plans, facts, support };
 }
 
@@ -414,13 +504,19 @@ async function windowsAndroid(device, ctx, m) {
     const adbOnly = (device.interfaces ?? []).filter((i) => i.problem).every((i) => is(i, 'ff', '42', '01') || /\bADB\b/.test(i.name ?? ''));
     if (adbOnly && m.adb && m.mode !== 'charge-only') {
       checks.push(check('adb-driver', 'USB debugging driver', 'info', 'Only the USB debugging (ADB) part has no driver. File transfer is not affected.'));
+      // Google's driver is for Google phones only; every other maker supplies its own.
+      const isGoogle = device.vendorId === '18d1';
       plans.push(
         plan({
           id: 'google-usb-driver',
-          title: 'Install Google\'s USB driver for USB debugging',
+          title: isGoogle ? 'Install Google\'s USB driver for USB debugging' : 'Install your phone maker\'s USB driver for USB debugging',
           why: 'Only needed for app developers using ADB. Some phone makers ship their own driver instead.',
           confidence: 0.3,
-          steps: [{ kind: 'open-url', title: 'Open the Google USB Driver page', explain: 'Follow the instructions for your phone.', url: 'https://developer.android.com/studio/run/win-usb' }],
+          steps: [
+            isGoogle
+              ? { kind: 'open-url', title: 'Open the Google USB Driver page', explain: 'Follow the instructions for your phone.', url: 'https://developer.android.com/studio/run/win-usb' }
+              : { kind: 'open-url', title: 'Open the maker driver table', explain: 'Find your phone\'s maker and follow the instructions it gives.', url: OEM_USB_URL },
+          ],
         }),
       );
       return { status: 'ok', headline: 'Ready: open File Explorer, the phone is under This PC.', checks, plans, facts };
@@ -436,7 +532,7 @@ async function windowsAndroid(device, ctx, m) {
         steps: [{ kind: 'command', title: 'Re-scan devices', explain: 'Asks Windows to re-detect hardware and fetch a driver.', cmd: 'pnputil', args: ['/scan-devices'], admin: true, safe: true }],
       }),
     );
-    plans.push(mtpDriverPlan(device));
+    plans.push(mtpDriverPlan(device), wirelessPlan());
     if (m.mode === 'charge-only') plans.push(fileTransferPlan(0.5), cablePlan());
     return { status: 'broken', headline: 'Windows could not set up this phone.', checks, plans, facts };
   }
@@ -455,7 +551,7 @@ async function windowsAndroid(device, ctx, m) {
 const TRUST_STEP = {
   kind: 'manual',
   title: 'Unlock the phone and tap "Trust"',
-  explain: 'Unlock your iPhone or iPad. When it asks "Trust This Computer?", tap Trust and enter your passcode. Keep it unlocked while it is connected: a locked iPhone can stop talking to the computer after a while.',
+  explain: 'Unlock your iPhone or iPad. When it asks "Trust This Computer?", tap Trust and enter your passcode. If you tapped Don\'t Trust by mistake, use the reset step below. The question can come back on every connection when automatic backups are on. Keep the iPhone unlocked while it is connected: a locked iPhone can stop talking to the computer after a while.',
 };
 
 // The prompt sometimes never appears. Resetting location and privacy settings brings it back, and removes no photos or apps.
@@ -476,7 +572,16 @@ async function macIos(device, ctx, kind) {
         title: `Let the ${kind} trust this Mac`,
         why: 'iPhones and iPads hide their contents until you approve the computer on the device itself.',
         confidence: 0.5,
-        steps: [TRUST_STEP, TRUST_RESET_STEP, { kind: 'manual', title: 'Open Finder', explain: `Click the ${kind} in the Finder sidebar under Locations.` }],
+        steps: [
+          TRUST_STEP,
+          {
+            kind: 'manual',
+            title: 'If "Allow accessory to connect?" appears, click Allow',
+            explain: 'Click Allow on the Mac. If you clicked Don\'t Allow, unplug the iPhone, plug it back in, and click Allow when it asks.',
+          },
+          TRUST_RESET_STEP,
+          { kind: 'manual', title: 'Open Finder', explain: `Click the ${kind} in the Finder sidebar under Locations. If the sidebar is hidden, choose View > Show Sidebar.` },
+        ],
       }),
     ],
     facts: { phone: 'ios', kind },
@@ -543,6 +648,8 @@ async function linuxIos(device, ctx, kind) {
     checks.push(check('trust', 'Phone trusts this computer', 'pass'));
     checks.push(check('files', 'Opening files', 'info', 'Photos open in the file manager. App documents can be mounted with ifuse.'));
     plans.push(duplicateEntryPlan());
+    const groups = await run('id', ['-nG']);
+    if (!groups.missing && !groups.stdout.split(/\s+/).includes('fuse')) plans.push(fuseGroupPlan());
     return { status: 'ok', headline: `Ready: the ${kind} trusts this computer.`, checks, plans, facts };
   }
   const detail = /passcode/i.test(out)
@@ -667,7 +774,24 @@ async function adbPermissionPlan(ctx) {
  */
 async function adbAuthPlan(ctx) {
   const out = await ctx.run('adb', ['devices']);
-  if (out.missing || !/\bunauthorized\b/.test(out.stdout)) return null;
+  if (out.missing) return null;
+  // Offline means adb reached the phone and got no answer: reconnecting usually clears it.
+  if (/\boffline\b/.test(out.stdout)) {
+    return plan({
+      id: 'adb-offline',
+      title: 'Reconnect the phone to USB debugging',
+      why: 'adb lists the phone as offline when it stops answering. Reconnecting usually fixes it.',
+      confidence: 0.4,
+      steps: [
+        {
+          kind: 'manual',
+          title: 'Unplug the phone and plug it back in',
+          explain: 'Then unlock it. If it still shows offline, run adb kill-server in a terminal, then adb devices.',
+        },
+      ],
+    });
+  }
+  if (!/\bunauthorized\b/.test(out.stdout)) return null;
   return plan({
     id: 'accept-adb-prompt',
     title: 'Accept the USB debugging prompt on the phone',
