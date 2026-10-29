@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('node:fs/promises');
+const os = require('node:os');
 const path = require('node:path');
 const { installStep } = require('../fix/packages');
 const { check, plan } = require('./helpers');
@@ -98,6 +99,23 @@ function fileTransferPlan(confidence) {
     why: 'Android phones connect for charging only until you allow file transfer on the phone itself. That protects your files when you plug into a public charger.',
     confidence,
     steps: [FILE_TRANSFER_STEP],
+  });
+}
+
+/** Tethering shares the phone's internet only while USB tethering is switched on in its settings. */
+function tetherPlan() {
+  return plan({
+    id: 'usb-tethering',
+    title: 'Check USB tethering on the phone',
+    why: 'The phone shares its internet over USB only while USB tethering is on, and it needs mobile data or Wi-Fi to share.',
+    confidence: 0.3,
+    steps: [
+      {
+        kind: 'manual',
+        title: 'Turn on USB tethering',
+        explain: 'On an Android phone, open Settings, then Network & internet (or Connections), then Hotspot & tethering, and switch on USB tethering. Menu names vary by brand. Make sure mobile data or Wi-Fi is on.',
+      },
+    ],
   });
 }
 
@@ -269,7 +287,7 @@ async function linuxAndroid(device, ctx, m) {
   }
   if (fm.plan) return { status: 'needs-fix', headline: 'Your file manager cannot open phones yet. One install fixes it.', checks, plans, facts };
   if (m.mode === 'tethering') {
-    plans.push(fileTransferPlan(0.3));
+    plans.push(fileTransferPlan(0.3), tetherPlan());
     return { status: 'ok', headline: 'The phone is sharing its internet connection over USB.', checks, plans, facts };
   }
   if (m.mode === 'photo-transfer') {
@@ -326,7 +344,10 @@ async function macAndroid(device, ctx, m) {
     return { status: 'needs-fix', headline: 'The phone is connected for charging only. Allow file transfer on the phone to see its files.', checks, plans, facts, support };
   }
   if (!hasApp) return { status: 'needs-fix', headline: 'macOS needs a free app to open Android phones. Plug Doctor can point you to one.', checks, plans, facts, support };
-  if (m.mode === 'tethering') return { status: 'ok', headline: 'The phone is sharing its internet connection over USB.', checks, plans, facts, support };
+  if (m.mode === 'tethering') {
+    plans.push(tetherPlan());
+    return { status: 'ok', headline: 'The phone is sharing its internet connection over USB.', checks, plans, facts, support };
+  }
   return { status: 'ok', headline: 'Ready: open OpenMTP to see the phone\'s files.', checks, plans, facts, support };
 }
 
@@ -373,14 +394,17 @@ async function windowsAndroid(device, ctx, m) {
     plans.push(fileTransferPlan(0.9), cablePlan());
     return { status: 'needs-fix', headline: 'The phone is connected for charging only. Allow file transfer on the phone to see its files.', checks, plans, facts };
   }
-  if (m.mode === 'tethering') return { status: 'ok', headline: 'The phone is sharing its internet connection over USB.', checks, plans, facts };
+  if (m.mode === 'tethering') {
+    plans.push(tetherPlan());
+    return { status: 'ok', headline: 'The phone is sharing its internet connection over USB.', checks, plans, facts };
+  }
   return { status: 'ok', headline: 'Ready: open File Explorer, the phone is under This PC.', checks, plans, facts };
 }
 
 const TRUST_STEP = {
   kind: 'manual',
   title: 'Unlock the phone and tap "Trust"',
-  explain: 'Unlock your iPhone or iPad. When it asks "Trust This Computer?", tap Trust and enter your passcode.',
+  explain: 'Unlock your iPhone or iPad. When it asks "Trust This Computer?", tap Trust and enter your passcode. Keep it unlocked while it is connected: a locked iPhone can stop talking to the computer after a while.',
 };
 
 // The prompt sometimes never appears. Resetting location and privacy settings brings it back, and removes no photos or apps.
@@ -546,8 +570,41 @@ async function diagnosePhone(device, ctx) {
   if (m.adb) {
     const authPlan = await adbAuthPlan(ctx);
     if (authPlan) result.plans.push(authPlan);
+    const permissionPlan = ctx.platform === 'linux' ? await adbPermissionPlan(ctx) : null;
+    if (permissionPlan) result.plans.push(permissionPlan);
   }
   return result;
+}
+
+/**
+ * On Linux, adb lists a phone as "no permissions" until the user may open
+ * USB devices: Android's udev rules and membership of the plugdev group.
+ * Installing the rules only adds files; the group change needs a fresh login.
+ */
+async function adbPermissionPlan(ctx) {
+  const out = await ctx.run('adb', ['devices']);
+  if (out.missing || !/no permissions/.test(out.stdout)) return null;
+  const steps = [installStep({ apt: ['android-sdk-platform-tools-common'], dnf: ['android-udev-rules'] }, ctx.manager)];
+  const user = os.userInfo().username;
+  if (/^[a-z_][a-z0-9_-]*$/.test(user)) {
+    steps.push({
+      kind: 'command',
+      title: 'Let your account open Android phones',
+      explain: 'Adds your account to the plugdev group, which the Android USB rules check.',
+      cmd: 'usermod',
+      args: ['-aG', 'plugdev', user],
+      admin: true,
+      safe: true,
+    });
+  }
+  steps.push({ kind: 'manual', title: 'Log out, log back in, then plug the phone in again', explain: 'New groups and rules only apply after you log in again. Then press "Check again".' });
+  return plan({
+    id: 'android-udev',
+    title: 'Let your account use the phone for USB debugging',
+    why: 'Linux blocks other users from talking to USB devices directly. Android\'s udev rules and the plugdev group let your account do it.',
+    confidence: 0.6,
+    steps,
+  });
 }
 
 /**

@@ -182,6 +182,27 @@ test('USB debugging waiting for the phone: the person is asked to accept the pro
   assertRunnable(r);
 });
 
+test('adb says no permissions on Linux: install the Android USB rules and join plugdev', async () => {
+  const run = fakeRun([['adb devices', 'List of devices attached\n28031FDH2000AB\tno permissions (user in plugdev group; are your udev rules wrong?)\n']]);
+  const r = await diagnose(pixel([MTP, ADB]), { platform: 'linux', run, manager: apt, ...gvfs });
+  const udev = r.plans.find((p) => p.id === 'android-udev');
+  assert.ok(udev, 'the permissions plan is offered');
+  assert.equal(udev.steps[0].cmd, 'apt-get', 'the rules come from the package manager');
+  const group = udev.steps.find((s) => s.cmd === 'usermod');
+  if (/^[a-z_][a-z0-9_-]*$/.test(require('node:os').userInfo().username)) {
+    assert.deepEqual(group.args.slice(0, 2), ['-aG', 'plugdev']);
+  }
+  assertRunnable(r);
+});
+
+test('USB tethering on: the person is asked to check tethering and mobile data', async () => {
+  const tethering = itf('02', 'e0', '01', '03', { name: 'RNDIS' });
+  const r = await diagnose(pixel([tethering]), { platform: 'linux', run: fakeRun([]), manager: apt, ...gvfs });
+  assert.equal(r.facts.mode, 'tethering');
+  assert.ok(r.plans.some((p) => p.id === 'usb-tethering'));
+  assertRunnable(r);
+});
+
 test('USB debugging already allowed: no prompt step', async () => {
   const run = fakeRun([['adb devices', 'List of devices attached\n28031FDH2000AB\tdevice\n']]);
   const r = await diagnose(pixel([MTP, ADB]), { platform: 'linux', run, manager: apt, ...gvfs });
