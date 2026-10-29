@@ -566,12 +566,17 @@ async function sendChat(d, text) {
   }
 }
 
-/** "Claude (Anthropic)", or the provider and model the person picked. */
+/**
+ * "Powered by Claude", or the provider and model the person picked. Plain
+ * text on purpose: Anthropic's trademark guidelines allow naming Claude, but
+ * its logo needs Anthropic's written permission first.
+ */
 function assistantLabel() {
   const s = state.settings;
   const p = providerFor(s.assistantProvider);
   if (!p) return 'AI assistant';
-  return `${p.label}${s.assistantModel ? ` · ${s.assistantModel}` : ''}`;
+  const name = p.custom ? 'your own server' : p.label.replace(/ \(.*\)$/, '');
+  return `Powered by ${name}${s.assistantModel ? ` · ${s.assistantModel}` : ''}`;
 }
 
 async function newConversation() {
@@ -705,6 +710,7 @@ function showProviderFields() {
       : p.custom
         ? 'Any server that speaks the OpenAI Chat Completions format with tools. Web research works with Claude only.'
         : `${p.open ? 'Open-weight models, run by this provider.' : 'A closed model.'} Web research works with Claude only.`;
+  if (p.hint) $('#provider-note').textContent += ` ${p.hint}`;
 }
 
 $('#provider-select').addEventListener('change', showProviderFields);
@@ -729,7 +735,10 @@ $('#settings-form').addEventListener('submit', async (e) => {
   };
   if (form.apiKey.value.trim()) patch.apiKey = form.apiKey.value.trim();
   try {
+    const before = state.settings;
     state.settings = await plugDoctor.updateSettings(patch);
+    // Another AI starts a new conversation, so the page should not show the old one.
+    if (['assistantProvider', 'assistantModel', 'assistantBaseUrl'].some((k) => before[k] !== state.settings[k])) state.chat = [];
     paintThemeButton();
     $('#settings').close();
     renderDetail();

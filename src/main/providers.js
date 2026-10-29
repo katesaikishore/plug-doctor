@@ -41,7 +41,7 @@ const PROVIDERS = [
     group: 'open',
     kind: 'openai',
     baseURL: 'https://api.mistral.ai/v1',
-    model: 'mistral-medium-latest',
+    model: 'mistral-medium-3-5',
     needsKey: true,
     keyPage: 'https://console.mistral.ai/api-keys',
     envKey: 'MISTRAL_API_KEY',
@@ -49,7 +49,7 @@ const PROVIDERS = [
   },
   {
     id: 'groq',
-    label: 'Groq (Llama, Qwen, gpt-oss)',
+    label: 'Groq (gpt-oss, Qwen)',
     group: 'open',
     kind: 'openai',
     baseURL: 'https://api.groq.com/openai/v1',
@@ -94,9 +94,12 @@ const PROVIDERS = [
     group: 'local',
     kind: 'openai',
     baseURL: 'http://localhost:11434/v1',
-    model: 'qwen3',
+    model: 'qwen3:8b',
     needsKey: false,
     keyPage: 'https://ollama.com/download',
+    // Ollama keeps a small memory window unless told otherwise, and tool results
+    // past it are cut off without a word.
+    hint: 'Ollama keeps a small memory window by default. Start it with OLLAMA_CONTEXT_LENGTH=64000 so long device reports are not cut off.',
     open: true,
     local: true,
   },
@@ -106,7 +109,7 @@ const PROVIDERS = [
     group: 'local',
     kind: 'openai',
     baseURL: 'http://localhost:1234/v1',
-    model: 'qwen/qwen3-8b',
+    model: 'qwen/qwen3.5-9b',
     needsKey: false,
     keyPage: 'https://lmstudio.ai',
     open: true,
@@ -179,7 +182,7 @@ function providerById(id) {
 
 /** What the page may know about providers: no keys, no headers. */
 function publicProviders() {
-  return PROVIDERS.map(({ id, label, group, kind, model, needsKey, keyPage, open, local, custom, baseURL }) => ({
+  return PROVIDERS.map(({ id, label, group, kind, model, needsKey, keyPage, hint, open, local, custom, baseURL }) => ({
     id,
     label,
     group,
@@ -188,6 +191,7 @@ function publicProviders() {
     model,
     needsKey,
     keyPage: keyPage ?? null,
+    hint: hint ?? '',
     open: Boolean(open),
     local: Boolean(local),
     custom: Boolean(custom),

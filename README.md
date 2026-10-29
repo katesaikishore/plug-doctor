@@ -159,6 +159,8 @@ You choose the AI in **Settings**:
 
 Paste the API key from the provider you pick. Keys are stored encrypted, one per provider. Providers charge for API use, so check their pricing first. Web research works with Claude only.
 
+Claude is a trademark of Anthropic, PBC, and the other AI names are trademarks of their owners. Plug Doctor is an independent open-source project, not affiliated with or endorsed by any of them.
+
 The assistant can look at what your computer sees, search the web for drivers and known fixes, and propose a fix. **It never changes anything without asking you first.** It can only run a short list of commands, checked one by one, and it can't remove software or delete a print queue.
 
 ## Command line
