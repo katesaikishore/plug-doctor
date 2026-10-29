@@ -73,7 +73,7 @@ npm install
 npm run demo
 ```
 
-Click around. Demo mode reads and changes nothing on your computer. If you turn on the AI assistant, the simulated devices are still sent to Anthropic when you ask it something.
+Click around. Demo mode reads and changes nothing on your computer. If you turn on the AI assistant, the simulated devices are still sent to the AI provider you picked when you ask it something.
 
 ## Use it with your own devices
 
@@ -140,14 +140,24 @@ These claims come from automated tests that run on all three systems. Testing on
 ## Your privacy
 
 - Plug Doctor has no accounts and doesn't track you.
-- The **AI assistant** is optional. If you use it, what it sends to Anthropic's Claude service includes your messages, the list of devices Plug Doctor can see (their names, IDs and details, which can include serial numbers), the checks Plug Doctor has run on the device you asked about, and the output of any read-only system checks the assistant runs. With web research on, it also sends search queries to the web.
+- The **AI assistant** is optional. If you use it, what it sends to the AI provider you pick (Anthropic's Claude unless you choose another) includes your messages, the list of devices Plug Doctor can see (their names, IDs and details, which can include serial numbers), the checks Plug Doctor has run on the device you asked about, and the output of any read-only system checks the assistant runs. With web research on, it also sends search queries to the web. If you pick a model that runs on your own computer (Ollama or LM Studio), nothing leaves it.
 - Your AI key is stored encrypted in your computer's keychain. It is never shown on screen.
 
 ## The optional AI assistant
 
-Plug Doctor's checks work without the internet, and so do fixes that only change a setting. Fixes that install software need the internet to download it. For the harder problems, you can turn on the **AI assistant**, which is powered by [Claude](https://claude.ai) from Anthropic.
+Plug Doctor's checks work without the internet, and so do fixes that only change a setting. Fixes that install software need the internet to download it. For the harder problems, you can turn on the **AI assistant**. It uses [Claude](https://claude.ai) from Anthropic unless you pick another AI.
 
-To use it, open **Settings** and paste your Anthropic API key. Get a key at [console.anthropic.com](https://console.anthropic.com). Anthropic charges for API use, so check their pricing first.
+You choose the AI in **Settings**:
+
+| Choice | What it is |
+| --- | --- |
+| **Claude (Anthropic)** | Recommended. Also searches the web for drivers and known fixes. |
+| **Open models** | DeepSeek, Mistral, and open models such as Llama, Qwen and gpt-oss through Groq, OpenRouter or Together AI. |
+| **On your own computer** | Ollama or LM Studio run an open model on your computer, for free. Nothing leaves it. Pick a model that can use tools. |
+| **Other closed models** | OpenAI, Google Gemini and xAI's Grok. |
+| **Another server** | Anything that speaks the OpenAI Chat Completions format with tools. |
+
+Paste the API key from the provider you pick. Keys are stored encrypted, one per provider. Providers charge for API use, so check their pricing first. Web research works with Claude only.
 
 The assistant can look at what your computer sees, search the web for drivers and known fixes, and propose a fix. **It never changes anything without asking you first.** It can only run a short list of commands, checked one by one, and it can't remove software or delete a print queue.
 
@@ -178,7 +188,7 @@ Found a security problem? Please report it privately, as described in [SECURITY.
 
 ## Questions people ask
 
-**Is it free?** Yes. The code is free and open source under the MIT license. The optional AI assistant needs an Anthropic API key, which you pay for directly to Anthropic.
+**Is it free?** Yes. The code is free and open source under the MIT license. The optional AI assistant needs an API key from the AI provider you pick, which you pay for directly, or it can use a free open model running on your own computer.
 
 **Does it need an account or an internet connection?** No account is needed. The checks work without the internet. Fixes that install software need it, and so does the AI assistant.
 

@@ -7,9 +7,19 @@ const { run } = require('../core/exec');
 const kb = require('../core/kb');
 const { validateStep, AI_ALLOWED_PROGRAMS } = require('../core/fix/runner');
 const { PNP_SCRIPT } = require('../core/usb/windows');
+const { providerById } = require('./providers');
 
-const MODEL = 'claude-opus-5-5';
 const MAX_OUTPUT = 12000;
+const MAX_TURNS = 25;
+
+/** An error answer from an OpenAI-compatible provider. */
+class ProviderError extends Error {
+  constructor(status, body) {
+    super(`HTTP ${status}`);
+    this.status = status;
+    this.body = String(body ?? '').slice(0, 400);
+  }
+}
 
 /**
  * Read-only probes the assistant may run, by name. It never gets a free-form
@@ -110,10 +120,20 @@ class Assistant {
    * @param {(event: any) => void} deps.onEvent
    * @param {boolean} [deps.webResearch]
    * @param {NodeJS.Platform} [deps.platform]
+   * @param {object} [deps.provider]  from providers.js; Claude when left out
+   * @param {string} [deps.model]  the provider's default model when left out
+   * @param {string} [deps.baseURL]  for OpenAI-compatible providers
+   * @param {typeof fetch} [deps.fetch]  for tests
    */
   constructor(deps) {
     this.deps = { platform: process.platform, webResearch: true, ...deps };
-    this.client = new Anthropic({ apiKey: deps.apiKey });
+    this.provider = deps.provider ?? providerById('anthropic');
+    this.model = deps.model || this.provider.model;
+    this.baseURL = deps.baseURL || this.provider.baseURL || '';
+    // Web search and fetch are Anthropic server tools, so they only exist with Claude.
+    if (this.provider.kind !== 'anthropic') this.deps.webResearch = false;
+    this.client = this.provider.kind === 'anthropic' ? new Anthropic({ apiKey: deps.apiKey }) : null;
+    this.fetch = deps.fetch ?? globalThis.fetch;
     this.messages = [];
     this.busy = false;
     this.abort = null;
@@ -318,9 +338,14 @@ class Assistant {
     const history = [...this.messages, { role: 'user', content }];
 
     try {
+      if (this.provider.kind !== 'anthropic') {
+        await this.sendCompatible(history);
+        onEvent({ type: 'done' });
+        return;
+      }
       const runner = this.client.beta.messages.toolRunner(
         {
-          model: MODEL,
+          model: this.model,
           max_tokens: 16000,
           output_config: { effort: 'high' },
           betas: ['server-side-fallback-2026-07-01'],
@@ -353,13 +378,99 @@ class Assistant {
       }
       onEvent({ type: 'done' });
     } catch (err) {
-      onEvent({ type: 'error', text: explainError(err) });
+      onEvent({ type: 'error', text: explainError(err, this) });
     } finally {
       this.busy = false;
       this.abort = null;
     }
   }
 }
+
+// ---------------------------------------------------------------- other providers
+
+Object.assign(Assistant.prototype, {
+  /**
+   * The same conversation through an OpenAI-compatible Chat Completions API
+   * (DeepSeek, OpenAI, Gemini, Mistral, Groq, OpenRouter, Together, Ollama,
+   * LM Studio). Same tools, same allow-list, same approval for every change.
+   */
+  async sendCompatible(history) {
+    const { onEvent } = this.deps;
+    const local = this.tools().filter((t) => typeof t.run === 'function');
+    const byName = new Map(local.map((t) => [t.name, t]));
+    const tools = local.map((t) => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.input_schema } }));
+    const system = { role: 'system', content: systemPrompt(this.deps.platform, false) };
+    const messages = [...history];
+    try {
+      for (let turn = 0; turn < MAX_TURNS; turn++) {
+        const reply = await this.complete([system, ...messages], tools);
+        const choice = reply?.choices?.[0];
+        const msg = choice?.message;
+        if (!msg) throw new ProviderError(200, 'The model sent an empty answer.');
+        const calls = Array.isArray(msg.tool_calls) ? msg.tool_calls : [];
+        // Tool calls go back exactly as they came: Gemini hides a signature in
+        // them. Reasoning models answer worse, or DeepSeek with a 400, unless
+        // their reasoning comes back too, in the fields they sent it in.
+        const echoed = Object.fromEntries(['reasoning_content', ...(this.provider.echo ?? [])].filter((k) => msg[k] != null).map((k) => [k, msg[k]]));
+        messages.push({
+          role: 'assistant',
+          content: typeof msg.content === 'string' ? msg.content : '',
+          ...echoed,
+          ...(calls.length ? { tool_calls: calls } : {}),
+        });
+        if (typeof msg.content === 'string' && msg.content.trim()) onEvent({ type: 'text', text: msg.content });
+        if (calls.length === 0) {
+          if (choice.finish_reason === 'length') onEvent({ type: 'error', text: 'The answer was cut off. Ask the assistant to continue.' });
+          return;
+        }
+        for (const call of calls) {
+          messages.push({ role: 'tool', tool_call_id: call.id, content: await this.runTool(byName, call) });
+        }
+      }
+      onEvent({ type: 'error', text: 'The assistant took too many steps. Ask it to continue, or try a simpler question.' });
+    } finally {
+      this.messages = messages;
+    }
+  },
+
+  /** Run one tool the model asked for. Anything it gets wrong goes back to it as text. */
+  async runTool(byName, call) {
+    const name = call?.function?.name;
+    const tool = byName.get(name);
+    if (!tool) return `There is no tool called ${name}. Use one of: ${[...byName.keys()].join(', ')}.`;
+    let args;
+    try {
+      args = JSON.parse(call.function.arguments || '{}');
+    } catch {
+      return 'The tool arguments were not valid JSON. Send them again as a JSON object.';
+    }
+    if (name !== 'run_probe') this.deps.onEvent({ type: 'activity', text: activityLabel(name) });
+    try {
+      return String(await tool.run(args ?? {}));
+    } catch (err) {
+      return `The tool could not run with those arguments: ${err.message}`;
+    }
+  },
+
+  /** One request to the provider's /chat/completions endpoint. */
+  async complete(messages, tools) {
+    const headers = { 'content-type': 'application/json', ...(this.provider.headers ?? {}) };
+    if (this.deps.apiKey) headers.authorization = `Bearer ${this.deps.apiKey}`;
+    const res = await this.fetch(`${this.baseURL.replace(/\/+$/, '')}/chat/completions`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ ...(this.provider.body ?? {}), model: this.model, messages, tools }),
+      signal: this.abort?.signal,
+    });
+    const text = await res.text();
+    if (!res.ok) throw new ProviderError(res.status, text);
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new ProviderError(res.status, 'The answer was not JSON.');
+    }
+  },
+});
 
 function activityLabel(name) {
   return {
@@ -379,7 +490,23 @@ async function readFileProbe(file) {
   }
 }
 
-function explainError(err) {
+function explainError(err, assistant = null) {
+  const label = assistant?.provider?.label ?? 'the assistant';
+  if (err instanceof ProviderError) {
+    const body = err.body.toLowerCase();
+    if (err.status === 401 || err.status === 403) return `${label} did not accept the API key. Check it in Settings.`;
+    if (err.status === 404 || /model.*(not found|does not exist|unknown)|no such model/.test(body)) return `${label} has no model called "${assistant?.model}". Check the model name in Settings.`;
+    if (err.status === 429) return `${label} says there have been too many requests, or the account is out of credit. Wait a minute and try again.`;
+    if (err.status === 400 && /tool|function/.test(body)) return `This model cannot use tools, which the assistant needs. Pick another model in Settings.`;
+    if (err.status === 400) return `${label} rejected the request: ${err.body.slice(0, 200)}`;
+    if (err.status === 200) return `${label} sent an answer Plug Doctor could not read. Try again, or pick another model.`;
+    return `${label} had a problem (${err.status}). Try again in a moment.`;
+  }
+  if (assistant?.provider?.kind && assistant.provider.kind !== 'anthropic' && err instanceof TypeError && /fetch failed/i.test(err.message)) {
+    return assistant.provider.local
+      ? `Could not reach ${label} at ${assistant.baseURL}. Is it running, with a model downloaded?`
+      : `Could not reach ${label}. Check your internet connection. (Plug Doctor's own checks and fixes work offline.)`;
+  }
   if (err instanceof Anthropic.AuthenticationError) return 'The API key was not accepted. Check it in Settings.';
   if (err instanceof Anthropic.PermissionDeniedError) return 'This API key is not allowed to use the assistant model or one of its tools. If web research is the problem, turn it off in Settings.';
   if (err instanceof Anthropic.RateLimitError) return 'Too many requests right now. Wait a minute and try again.';
@@ -390,4 +517,4 @@ function explainError(err) {
   return `Something went wrong: ${err?.message ?? err}`;
 }
 
-module.exports = { Assistant, PROBES, systemPrompt, clip };
+module.exports = { Assistant, PROBES, systemPrompt, clip, explainError, ProviderError };

@@ -353,6 +353,21 @@ summary:hover { color: var(--text); }
 }
 .note { font-size: 12.5px; color: var(--muted); }
 
+/* Anything marked hidden stays hidden, even inside grid and flex layouts. */
+[hidden] { display: none !important; }
+
+/* Assistant AI: provider, model and server address */
+.field select {
+  appearance: none; padding: 10px 36px 10px 12px; border-radius: var(--radius); border: 1px solid var(--border-strong);
+  background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a919d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center / 16px;
+  color: var(--text); font: inherit; cursor: pointer;
+  transition: border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+}
+.field select:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+.field-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+.mini-field { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-weight: 550; }
+.mini-field input { width: 100%; }
+
 /* segmented choice (Appearance) */
 .segmented { display: inline-flex; gap: 2px; padding: 3px; background: var(--panel-2); border-radius: 12px; width: fit-content; max-width: 100%; flex-wrap: wrap; }
 .segmented label { position: relative; cursor: pointer; }

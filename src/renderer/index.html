@@ -42,14 +42,14 @@
           <input type="checkbox" name="assistantEnabled" />
           <span>
             <strong>AI assistant</strong>
-            <small>For devices Plug Doctor cannot fix on its own. Device details and command output are sent to Anthropic's Claude API when you use it.</small>
+            <small>For devices Plug Doctor cannot fix on its own. When you use it, device details and command output go to the AI provider you pick below. With a model on this computer, nothing leaves it.</small>
           </span>
         </label>
         <label class="toggle">
           <input type="checkbox" name="webResearch" />
           <span>
             <strong>Let the assistant search the web</strong>
-            <small>For finding drivers and known fixes.</small>
+            <small>For finding drivers and known fixes. Works with Claude.</small>
           </span>
         </label>
         <label class="toggle">
@@ -67,10 +67,19 @@
             <label><input type="radio" name="theme" value="dark" /><span>Dark</span></label>
           </div>
         </div>
-        <label class="field">
-          <span><strong>Anthropic API key</strong> <small id="key-status"></small></span>
-          <input type="password" name="apiKey" autocomplete="off" placeholder="sk-ant-..." />
-          <small>Stored encrypted in your system keychain. Get one at console.anthropic.com.</small>
+        <div class="field" id="provider-field">
+          <span><strong>Assistant AI</strong></span>
+          <select name="assistantProvider" id="provider-select" class="select" aria-label="Assistant AI provider"></select>
+          <small id="provider-note"></small>
+          <div class="field-row">
+            <label class="mini-field"><span>Model</span><input name="assistantModel" autocomplete="off" spellcheck="false" /></label>
+            <label class="mini-field" id="baseurl-field" hidden><span>Server address</span><input name="assistantBaseUrl" autocomplete="off" spellcheck="false" placeholder="https://..." /></label>
+          </div>
+        </div>
+        <label class="field" id="key-field">
+          <span><strong id="key-label">Anthropic API key</strong> <small id="key-status"></small></span>
+          <input type="password" name="apiKey" autocomplete="off" placeholder="Paste your key" />
+          <small id="key-help">Stored encrypted in your system keychain.</small>
         </label>
         <p class="error" id="settings-error" hidden></p>
         <p class="muted small">Plug Doctor keeps watching in the background until you quit it. <button type="button" class="link" id="quit-app">Quit Plug Doctor</button></p>

@@ -95,6 +95,7 @@ const state = {
   drafts: {}, // deviceId -> chat text not sent yet
   stepsOpen: {}, // "deviceId:planId" -> whether the person opened or closed the step list
   sources: [{ id: 'usb', label: 'USB' }], // device sources, in sidebar order
+  providers: [], // AI providers the assistant can use
 };
 
 function deviceName(d) {
@@ -438,7 +439,7 @@ function renderAssistantTab(d) {
       'div',
       { class: 'card callout' },
       h('h3', {}, 'Connect the assistant'),
-      h('p', {}, "The assistant uses Anthropic's Claude. Add your API key in Settings. Everything else in Plug Doctor works without it."),
+      h('p', {}, `The assistant uses ${providerFor(s.assistantProvider)?.label ?? 'an AI model'}. Add your API key in Settings, or pick a model that runs on this computer. Everything else in Plug Doctor works without it.`),
       h('button', { class: 'btn primary', onclick: openSettings }, 'Add API key'),
     );
   }
@@ -474,7 +475,12 @@ function renderAssistantTab(d) {
       ? h('button', { class: 'btn ghost', onclick: () => plugDoctor.stopAssistant() }, 'Stop')
       : h('button', { class: 'btn primary', onclick: () => sendChat(d, input.value) }, 'Send'),
   );
-  const tools = h('div', { class: 'chat-tools' }, h('button', { class: 'link', onclick: newConversation }, 'New conversation'), h('span', { class: 'muted small' }, 'Every change it suggests needs your approval.'));
+  const tools = h(
+    'div',
+    { class: 'chat-tools' },
+    h('button', { class: 'link', onclick: newConversation }, 'New conversation'),
+    h('span', { class: 'muted small' }, `${assistantLabel()} · Every change it suggests needs your approval.`),
+  );
   return [log, form, tools];
 }
 
@@ -560,6 +566,14 @@ async function sendChat(d, text) {
   }
 }
 
+/** "Claude (Anthropic)", or the provider and model the person picked. */
+function assistantLabel() {
+  const s = state.settings;
+  const p = providerFor(s.assistantProvider);
+  if (!p) return 'AI assistant';
+  return `${p.label}${s.assistantModel ? ` · ${s.assistantModel}` : ''}`;
+}
+
 async function newConversation() {
   await plugDoctor.resetAssistant();
   state.chat = [];
@@ -639,10 +653,61 @@ async function openSettings() {
   form.scanNetwork.checked = s.scanNetwork;
   form.theme.value = s.theme ?? 'system';
   form.apiKey.value = '';
-  $('#key-status').textContent = s.hasApiKey ? '(saved — leave empty to keep it)' : '(not set)';
+  fillProviderSelect();
+  form.assistantProvider.value = s.assistantProvider ?? 'anthropic';
+  settingsSnapshot = s;
+  showProviderFields();
   $('#settings-error').hidden = true;
   dlg.showModal();
 }
+
+/** The settings the dialog opened with, so switching provider back restores what was saved. */
+let settingsSnapshot = {};
+
+const providerFor = (id) => state.providers.find((p) => p.id === id) ?? state.providers[0];
+
+/** Providers grouped as Recommended, Open models, On this computer, Other closed models, Other. */
+function fillProviderSelect() {
+  const select = $('#provider-select');
+  if (select.options.length) return;
+  const groups = new Map();
+  for (const p of state.providers) {
+    if (!groups.has(p.groupLabel)) groups.set(p.groupLabel, []);
+    groups.get(p.groupLabel).push(p);
+  }
+  for (const [label, providers] of groups) {
+    select.append(h('optgroup', { label }, providers.map((p) => h('option', { value: p.id }, p.label))));
+  }
+}
+
+/** Show the fields the picked provider needs, with its own key status and help. */
+function showProviderFields() {
+  const form = $('#settings-form');
+  const s = settingsSnapshot;
+  const p = providerFor(form.assistantProvider.value);
+  if (!p) return;
+  const saved = s.assistantProvider === p.id;
+  form.assistantModel.placeholder = p.model || 'Model name';
+  form.assistantModel.value = saved ? s.assistantModel ?? '' : '';
+  const ownAddress = p.local || p.custom;
+  $('#baseurl-field').hidden = !ownAddress;
+  form.assistantBaseUrl.placeholder = p.baseURL || 'https://...';
+  form.assistantBaseUrl.value = saved && ownAddress ? s.assistantBaseUrl ?? '' : '';
+  $('#key-field').hidden = !p.needsKey && !p.custom;
+  $('#key-label').textContent = p.custom ? 'API key (if the server needs one)' : `${p.label} API key`;
+  $('#key-status').textContent = s.savedKeys?.[p.id] ? '(saved — leave empty to keep it)' : '(not set)';
+  const host = p.keyPage ? new URL(p.keyPage).host : '';
+  $('#key-help').textContent = `Stored encrypted in your system keychain.${host ? ` Get one at ${host}.` : ''}`;
+  $('#provider-note').textContent = p.kind === 'anthropic'
+    ? 'Recommended. Claude can also search the web for drivers and fixes.'
+    : p.local
+      ? `Runs on this computer, so nothing is sent anywhere. Install it from ${host}, then download a model that can use tools. Web research works with Claude only.`
+      : p.custom
+        ? 'Any server that speaks the OpenAI Chat Completions format with tools. Web research works with Claude only.'
+        : `${p.open ? 'Open-weight models, run by this provider.' : 'A closed model.'} Web research works with Claude only.`;
+}
+
+$('#provider-select').addEventListener('change', showProviderFields);
 
 // Cancel closes without saving. It is not a submit button, so pressing Enter in
 // the key field saves (Save is the form's first submit button).
@@ -652,7 +717,16 @@ $('#settings-form').addEventListener('submit', async (e) => {
   if (e.submitter?.id !== 'settings-save') return;
   e.preventDefault();
   const form = e.target;
-  const patch = { autoFix: form.autoFix.checked, assistantEnabled: form.assistantEnabled.checked, webResearch: form.webResearch.checked, scanNetwork: form.scanNetwork.checked, theme: form.theme.value };
+  const patch = {
+    autoFix: form.autoFix.checked,
+    assistantEnabled: form.assistantEnabled.checked,
+    webResearch: form.webResearch.checked,
+    scanNetwork: form.scanNetwork.checked,
+    theme: form.theme.value,
+    assistantProvider: form.assistantProvider.value,
+    assistantModel: form.assistantModel.value,
+    assistantBaseUrl: $('#baseurl-field').hidden ? '' : form.assistantBaseUrl.value,
+  };
   if (form.apiKey.value.trim()) patch.apiKey = form.apiKey.value.trim();
   try {
     state.settings = await plugDoctor.updateSettings(patch);
@@ -780,6 +854,7 @@ document.body.dataset.platform = plugDoctor.platform;
 
 (async () => {
   state.settings = await plugDoctor.getSettings();
+  state.providers = await plugDoctor.listProviders();
   paintThemeButton();
   const { devices, diagnoses, sources } = await plugDoctor.listDevices();
   if (sources?.length) state.sources = sources;

@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld('plugDoctor', {
   stopAssistant: () => ipcRenderer.invoke('assistant:stop'),
   stopFix: (deviceId) => ipcRenderer.invoke('fix:stop', deviceId),
   resetAssistant: () => ipcRenderer.invoke('assistant:reset'),
+  listProviders: () => ipcRenderer.invoke('assistant:providers'),
   answerApproval: (token, approved) => ipcRenderer.invoke('approval:respond', token, approved),
   quit: () => ipcRenderer.invoke('app:quit'),
   onDevices: on('devices'),

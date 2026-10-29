@@ -10,6 +10,7 @@ const { runPlan } = require('../core/fix/runner');
 const report = require('../core/report');
 const settings = require('./settings');
 const { Assistant } = require('./assistant');
+const { providerById, publicProviders } = require('./providers');
 const { createDemo } = require('../core/demo');
 
 const ICON = path.join(__dirname, '..', '..', 'assets', 'icon.png');
@@ -225,12 +226,23 @@ function createTray() {
 }
 
 function getAssistant() {
-  const key = settings.apiKey();
-  if (!key) throw new Error('Add an Anthropic API key in Settings to use the assistant.');
   const s = settings.load();
-  if (!assistant || assistant.deps.apiKey !== key || assistant.deps.webResearch !== s.webResearch) {
+  const provider = providerById(s.assistantProvider);
+  const key = settings.apiKey(provider.id, s);
+  if (provider.needsKey && !key) throw new Error(`Add a ${provider.label} API key in Settings to use the assistant.`);
+  const model = s.assistantModel || provider.model;
+  if (!model) throw new Error('Add the model name in Settings to use the assistant.');
+  // Servers on this computer and other OpenAI-compatible servers can have their own address.
+  const baseURL = provider.local || provider.custom ? s.assistantBaseUrl || provider.baseURL : provider.baseURL;
+  if (provider.kind === 'openai' && !baseURL) throw new Error('Add the server address in Settings to use the assistant.');
+  // A new provider, model, key or address starts a fresh conversation; other setting changes keep it.
+  const signature = JSON.stringify([provider.id, model, baseURL, key, s.webResearch]);
+  if (!assistant || assistant.signature !== signature) {
     assistant = new Assistant({
       apiKey: key,
+      provider,
+      model,
+      baseURL,
       webResearch: s.webResearch,
       demo: Boolean(demo), // in demo mode the assistant reads the simulated computer only
       getDevices: () => watcher.snapshot(),
@@ -242,6 +254,7 @@ function getAssistant() {
         return { approved: true, outcome: await applyPlan(assistantDeviceId ?? 'assistant', plan) };
       },
     });
+    assistant.signature = signature;
   }
   return assistant;
 }
@@ -304,6 +317,7 @@ function registerIpc() {
     cancelWaits();
   });
   ipcMain.handle('assistant:reset', () => assistant?.reset());
+  ipcMain.handle('assistant:providers', () => publicProviders());
 }
 
 /** Answer every question still waiting on the person with "no": used when they press Stop. */

@@ -44,7 +44,7 @@ A plan is a list of steps: `command` (allow-listed program + args, optional `adm
 
 ## The app
 
-- **Main process** owns the watcher, diagnoses, fix execution, settings (API key encrypted with `safeStorage`) and the assistant.
+- **Main process** owns the watcher, diagnoses, fix execution, settings (API keys encrypted with `safeStorage`, one per AI provider) and the assistant.
 - **Renderer** is sandboxed with `contextIsolation`, a strict CSP and no Node. It builds DOM without `innerHTML`, because USB descriptor strings and model output are untrusted. It can only ask for a fix by device ID and plan ID, and the main process looks the plan up again.
 - **Notifications** only come for things physically plugged in (USB, a screen). A TV turning on or headphones connecting stays quiet. **Automatic fixes** only run for USB devices you plug in, and network printers are never added without a click.
-- **Assistant** (`src/main/assistant.js`) uses the Anthropic SDK's tool runner with strict tools: `list_devices`, `diagnose_device`, `run_probe` (named read-only commands for every source), `search_knowledge_base`, `propose_fix` (approval-gated, allow-listed) and `draft_recipe`. It can also use web search and fetch when enabled.
+- **Assistant** (`src/main/assistant.js`) uses the Anthropic SDK's tool runner with strict tools: `list_devices`, `diagnose_device`, `run_probe` (named read-only commands for every source), `search_knowledge_base`, `propose_fix` (approval-gated, allow-listed) and `draft_recipe`. It can also use web search and fetch when enabled. Other AI providers (`src/main/providers.js`: DeepSeek, Mistral, Groq, OpenRouter, Together, Ollama, LM Studio, OpenAI, Gemini, Grok, or any OpenAI-compatible server) go through the same tools in the OpenAI Chat Completions format, with the same allow-list and approval. Web search is Claude-only, since it uses Anthropic's server tools.
