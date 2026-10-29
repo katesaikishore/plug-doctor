@@ -298,7 +298,7 @@ const TRUST_STEP = {
 const TRUST_RESET_STEP = {
   kind: 'manual',
   title: 'If the prompt never appears, reset location and privacy',
-  explain: 'On the iPhone or iPad, go to Settings > General > Transfer or Reset iPhone > Reset > Reset Location & Privacy (on older versions, Settings > General > Reset). Then unplug the cable, plug it back in, unlock the phone and check again.',
+  explain: 'On the iPhone or iPad, go to Settings > General > Transfer or Reset iPhone > Reset > Reset Location & Privacy (on older versions, Settings > General > Reset). Then unplug the cable, plug it back in, unlock the phone and check again. Apps may ask for location again. If the prompt still does not appear, restart both the phone and this computer, and try another cable or port.',
 };
 
 async function macIos(device, ctx, kind) {
