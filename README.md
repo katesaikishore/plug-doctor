@@ -21,7 +21,11 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/tv.png" width="760" alt="Plug Doctor showing a TV that is stuck at 30 Hz, with the steps to fix it">
+  <a href="docs/media/plug-doctor-demo.mp4">
+    <img src="docs/media/demo-preview.gif" width="760" alt="Plug Doctor in action: a printer is set up with one click, then the app switches to dark mode">
+  </a>
+  <br>
+  <a href="docs/media/plug-doctor-demo.mp4"><strong>▶ Watch the 2-minute demo</strong></a>
 </p>
 
 ---
@@ -47,8 +51,13 @@ You search the internet, find a forum post from years ago, and try things until 
    - **Can't work on this computer**: Plug Doctor says so, and tells you what does work instead.
 3. **Click "Make it work".** You see every step first. Your computer asks for your password when it needs to. Some steps, like tapping a button on your phone, wait until you say you've done them.
 
+Plug Doctor follows your computer's light or dark mode. You can also pick one with the button at the top of the window.
+
 <p align="center">
-  <img src="docs/screenshots/fix-plan.png" width="760" alt="A printer with the fix ready to run: each step is listed before it runs">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/fix-plan-dark.png">
+    <img src="docs/screenshots/fix-plan.png" width="760" alt="A printer with the fix ready to run: each step is listed before it runs">
+  </picture>
 </p>
 
 ## Try it in one minute
@@ -108,7 +117,10 @@ These claims come from automated tests that run on all three systems. Testing on
 | **Anything else** | Says whether your computer already knows the device, and gives you a report you can share to get help. |
 
 <p align="center">
-  <img src="docs/screenshots/unsupported.png" width="760" alt="A game controller that can't work on an Apple silicon Mac, with a clear explanation and what works instead">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/unsupported-dark.png">
+    <img src="docs/screenshots/unsupported.png" width="760" alt="A game controller that can't work on an Apple silicon Mac, with a clear explanation and what works instead">
+  </picture>
 </p>
 
 ## What it won't do
@@ -208,6 +220,8 @@ Plug Doctor is written in plain Node.js, with [Electron](https://www.electronjs.
 
 ```sh
 npm test       # unit tests, run on macOS, Windows and Linux in CI
+npm run e2e    # end-to-end check of the real app in demo mode (needs Playwright; on Linux, run it under xvfb-run)
+node scripts/screenshots.js   # README screenshots, in light and dark
 ```
 
 </details>
