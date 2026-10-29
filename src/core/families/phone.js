@@ -131,7 +131,7 @@ function hotspotPlan() {
   return plan({
     id: 'iphone-hotspot',
     title: 'Share the iPhone\'s internet over the cable',
-    why: 'Personal Hotspot can share the iPhone\'s mobile data over USB. On Windows, Apple Devices must be installed for it to work.',
+    why: 'Personal Hotspot can share the iPhone\'s mobile data over USB. On Windows, Apple Devices or iTunes must be installed for it to work.',
     confidence: 0.2,
     steps: [
       {
@@ -289,7 +289,7 @@ function mtpDriverPlan(device) {
     {
       kind: 'open-url',
       title: 'Get your phone maker\'s USB driver, if it has one',
-      explain: 'Find your phone\'s maker in the table, install the driver it names, then try again. If your maker is not in the table, search its support site for a USB driver. OnePlus and Nothing phones are not in the table.',
+      explain: 'This driver is mainly for developers, so try the steps above first. Then find your phone\'s maker in the table, install the driver it names, and try again. If your maker is not in the table, search its support site for a USB driver. OnePlus and Nothing phones are not in the table.',
       url: OEM_USB_URL,
     },
   );
@@ -560,8 +560,8 @@ const TRUST_STEP = {
 // The prompt sometimes never appears. Resetting location and privacy settings brings it back, and removes no photos or apps.
 const TRUST_RESET_STEP = {
   kind: 'manual',
-  title: 'If the prompt never appears, reset location and privacy',
-  explain: 'On the iPhone or iPad, go to Settings > General > Transfer or Reset iPhone > Reset > Reset Location & Privacy (on older versions, Settings > General > Reset). Then unplug the cable, plug it back in, unlock the phone and check again. Apps may ask for location again. If the prompt still does not appear, restart both the phone and this computer, and try another cable or port.',
+  title: 'If the prompt still does not appear, restart, then reset location and privacy',
+  explain: 'First restart the computer, then restart the iPhone or iPad, and check again. If the prompt still does not appear, go to Settings > General > Transfer or Reset iPhone > Reset > Reset Location & Privacy (on older versions, Settings > General > Reset). Then unplug the cable, plug it back in and unlock the phone. Apps may ask for location again. Try another cable or port if it still fails.',
 };
 
 async function macIos(device, ctx, kind) {
@@ -714,9 +714,9 @@ async function windowsIos(device, ctx, kind) {
     checks.push(check('apple-driver', 'Apple\'s driver installed', 'pass'));
     return { status: 'ok', headline: `Ready: photos are in File Explorer, and Apple Devices can back up the ${kind}.`, checks, plans, facts };
   }
-  checks.push(check('apple-driver', 'Apple\'s driver installed', 'info', 'Photos are available in File Explorer without it. To back up or sync, install Apple Devices.'));
+  checks.push(check('apple-driver', 'Apple\'s driver installed', 'info', 'Apple Devices from the Microsoft Store gives Windows the driver for photos, backup and sync. Install it if the iPhone does not show up in File Explorer.'));
   plans.push(appleDevicesPlan(0.5), startAppleServicePlan(), photoFormatPlan(), hotspotPlan());
-  return { status: 'ok', headline: `Photos on the ${kind} are available in File Explorer.`, checks, plans, facts };
+  return { status: 'ok', headline: `Install Apple Devices to see the ${kind}'s photos in File Explorer.`, checks, plans, facts };
 }
 
 async function diagnosePhone(device, ctx) {
