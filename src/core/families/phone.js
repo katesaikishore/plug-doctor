@@ -101,6 +101,91 @@ function fileTransferPlan(confidence) {
   });
 }
 
+/** Some cables only charge and carry no data. Google and Samsung both name this as a common cause. */
+function cablePlan() {
+  return plan({
+    id: 'swap-cable',
+    title: 'Try a different USB cable and port',
+    why: 'Some cables only charge and carry no data. Plug straight into a port on the computer, not a hub, and use the cable that came with the phone if you can.',
+    confidence: 0.4,
+    steps: [{ kind: 'manual', title: 'Swap the cable and port', explain: 'Unplug the phone and try the cable that came with it, or another known data cable, in a port on the computer itself. Then choose File transfer again.' }],
+  });
+}
+
+const OEM_USB_URL = 'https://developer.android.com/studio/run/oem-usb';
+
+/**
+ * Windows' built-in MTP driver, picked by hand when the rescan does not
+ * bring it back. Every step is the person's to take on the computer or phone.
+ */
+function mtpDriverPlan(device) {
+  const steps = [FILE_TRANSFER_STEP];
+  if (device.vendorId === '04e8') {
+    steps.push({ kind: 'manual', title: 'Tap "Allow access to phone data"', explain: 'On a Samsung phone, unlock it and tap Allow when it asks to let this computer access its data.' });
+  }
+  steps.push(
+    {
+      kind: 'manual',
+      title: 'Pick "MTP USB Device" as the driver',
+      explain: 'Press Windows + R, type devmgmt.msc and press Enter. Under Portable Devices or Other devices, right-click the phone, choose Update driver, then Browse my computer, Let me pick from a list, and select MTP USB Device.',
+    },
+    {
+      kind: 'manual',
+      title: 'If the warning stays, reinstall the phone',
+      explain: 'In Device Manager, choose Uninstall device for the phone. Unplug it, restart the computer, then plug it back in and unlock it.',
+    },
+    {
+      kind: 'open-url',
+      title: 'Get your phone maker\'s USB driver, if it has one',
+      explain: 'Find your phone\'s maker in the table, install the driver it names, then try again.',
+      url: OEM_USB_URL,
+    },
+  );
+  return plan({
+    id: 'mtp-driver',
+    title: 'Install the right Windows driver for the phone',
+    why: 'Windows usually sets up phones on its own. When it cannot, its built-in MTP driver or the maker\'s driver lets File Explorer show the phone\'s files.',
+    confidence: 0.5,
+    steps,
+  });
+}
+
+/** Restart usbmuxd when pairing keeps failing. Starting a service is add-only and touches no pairing record. */
+function restartPairingPlan() {
+  return plan({
+    id: 'restart-usbmuxd-pairing',
+    title: 'Restart the iPhone connection service, then pair again',
+    why: 'When the pairing record is stuck, restarting the service and pairing again often clears it. Plug Doctor does not delete any pairing record.',
+    confidence: 0.4,
+    steps: [
+      { kind: 'command', title: 'Restart usbmuxd', explain: 'Restarts the iPhone connection service.', cmd: 'systemctl', args: ['restart', 'usbmuxd'], admin: true, safe: true, optional: true },
+      { kind: 'manual', title: 'Unplug the iPhone, plug it back in, unlock it and tap Trust', explain: 'Then press "Check again".' },
+    ],
+  });
+}
+
+/** The Apple service that Apple Devices and iTunes talk through. Starting it is add-only and changes no settings. */
+function startAppleServicePlan() {
+  return plan({
+    id: 'start-apple-service',
+    title: 'Start the Apple Mobile Device Service',
+    why: 'Apple Devices and iTunes cannot find the iPhone while this Windows service is stopped. Starting it changes no settings.',
+    confidence: 0.3,
+    steps: [
+      {
+        kind: 'command',
+        title: 'Start the service',
+        explain: 'Starts Apple Mobile Device Service now.',
+        cmd: 'powershell.exe',
+        args: ['-NoProfile', '-Command', "Start-Service -Name 'Apple Mobile Device Service'"],
+        admin: true,
+        safe: true,
+        optional: true,
+      },
+    ],
+  });
+}
+
 function modeCheck(m) {
   const label = 'Phone shares its files';
   switch (m.mode) {
@@ -179,7 +264,7 @@ async function linuxAndroid(device, ctx, m) {
   if (fm.plan) plans.push(fm.plan);
 
   if (m.mode === 'charge-only') {
-    plans.push(fileTransferPlan(0.9));
+    plans.push(fileTransferPlan(0.9), cablePlan());
     return { status: 'needs-fix', headline: 'The phone is connected for charging only. Allow file transfer on the phone to see its files.', checks, plans, facts };
   }
   if (fm.plan) return { status: 'needs-fix', headline: 'Your file manager cannot open phones yet. One install fixes it.', checks, plans, facts };
@@ -236,7 +321,10 @@ async function macAndroid(device, ctx, m) {
     );
   }
 
-  if (m.mode === 'charge-only') return { status: 'needs-fix', headline: 'The phone is connected for charging only. Allow file transfer on the phone to see its files.', checks, plans, facts, support };
+  if (m.mode === 'charge-only') {
+    plans.push(cablePlan());
+    return { status: 'needs-fix', headline: 'The phone is connected for charging only. Allow file transfer on the phone to see its files.', checks, plans, facts, support };
+  }
   if (!hasApp) return { status: 'needs-fix', headline: 'macOS needs a free app to open Android phones. Plug Doctor can point you to one.', checks, plans, facts, support };
   if (m.mode === 'tethering') return { status: 'ok', headline: 'The phone is sharing its internet connection over USB.', checks, plans, facts, support };
   return { status: 'ok', headline: 'Ready: open OpenMTP to see the phone\'s files.', checks, plans, facts, support };
@@ -276,12 +364,13 @@ async function windowsAndroid(device, ctx, m) {
         steps: [{ kind: 'command', title: 'Re-scan devices', explain: 'Asks Windows to re-detect hardware and fetch a driver.', cmd: 'pnputil', args: ['/scan-devices'], admin: true, safe: true }],
       }),
     );
-    if (m.mode === 'charge-only') plans.push(fileTransferPlan(0.5));
+    plans.push(mtpDriverPlan(device));
+    if (m.mode === 'charge-only') plans.push(fileTransferPlan(0.5), cablePlan());
     return { status: 'broken', headline: 'Windows could not set up this phone.', checks, plans, facts };
   }
   if (m.mode === 'fastboot') return fastbootResult(checks, facts);
   if (m.mode === 'charge-only') {
-    plans.push(fileTransferPlan(0.9));
+    plans.push(fileTransferPlan(0.9), cablePlan());
     return { status: 'needs-fix', headline: 'The phone is connected for charging only. Allow file transfer on the phone to see its files.', checks, plans, facts };
   }
   if (m.mode === 'tethering') return { status: 'ok', headline: 'The phone is sharing its internet connection over USB.', checks, plans, facts };
@@ -391,6 +480,7 @@ async function linuxIos(device, ctx, kind) {
       steps: [TRUST_STEP, TRUST_RESET_STEP],
     }),
   );
+  plans.push(restartPairingPlan());
   return { status: 'needs-fix', headline: `Unlock the ${kind} and tap "Trust" to finish connecting.`, checks, plans, facts };
 }
 
@@ -437,7 +527,7 @@ async function windowsIos(device, ctx, kind) {
     return { status: 'ok', headline: `Ready: photos are in File Explorer, and Apple Devices can back up the ${kind}.`, checks, plans, facts };
   }
   checks.push(check('apple-driver', 'Apple\'s driver installed', 'info', 'Photos are available in File Explorer without it. To back up or sync, install Apple Devices.'));
-  plans.push(appleDevicesPlan(0.5));
+  plans.push(appleDevicesPlan(0.5), startAppleServicePlan());
   return { status: 'ok', headline: `Photos on the ${kind} are available in File Explorer.`, checks, plans, facts };
 }
 

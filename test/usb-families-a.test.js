@@ -150,6 +150,43 @@ test('Android on Windows where only ADB lacks a driver: files still work', async
   assert.equal(r.plans[0].id, 'google-usb-driver');
 });
 
+test('Android on Windows with Code 28: a manual MTP driver plan follows the rescan', async () => {
+  const d = { ...pixel([{ ...MTP, windowsClass: 'WPD', problem: 28 }]), platform: 'win32', problem: { code: 28, message: 'No driver is installed for this device (Code 28).' } };
+  const r = await diagnose(d, { platform: 'win32', run: fakeRun([]), manager: null });
+  const mtp = r.plans.find((p) => p.id === 'mtp-driver');
+  assert.ok(mtp, 'the driver plan is offered');
+  assert.ok(mtp.steps.some((s) => /MTP USB Device/.test(`${s.title} ${s.explain}`)), 'it names the built-in driver');
+  assert.ok(mtp.steps.some((s) => s.kind === 'open-url' && s.url === 'https://developer.android.com/studio/run/oem-usb'), 'it links the maker driver table');
+  assert.ok(!mtp.steps.some((s) => s.kind === 'command'), 'every driver step is the person\'s to take');
+  assertRunnable(r);
+});
+
+test('Samsung on Windows with Code 28 also asks for Allow access to phone data', async () => {
+  const d = {
+    ...usb({ vendorId: '04e8', productId: '6860', vendorName: 'Samsung', productName: 'SM-G991B', serial: 'R58N', interfaces: [{ ...MTP, windowsClass: 'WPD', problem: 28 }] }),
+    platform: 'win32',
+    problem: { code: 28, message: 'No driver is installed for this device (Code 28).' },
+  };
+  const r = await diagnose(d, { platform: 'win32', run: fakeRun([]), manager: null });
+  const mtp = r.plans.find((p) => p.id === 'mtp-driver');
+  assert.ok(mtp.steps.some((s) => /Allow access to phone data/.test(s.title)));
+  assertRunnable(r);
+});
+
+test('Android that only charges on Linux is offered a different cable and port', async () => {
+  const r = await diagnose(pixel([]), { platform: 'linux', run: fakeRun([]), manager: apt, ...noGvfs });
+  assert.equal(r.facts.mode, 'charge-only');
+  assert.ok(r.plans.some((p) => p.id === 'choose-file-transfer'));
+  assert.ok(r.plans.some((p) => p.id === 'swap-cable'));
+  assertRunnable(r);
+});
+
+test('Android that only charges on Windows is offered a different cable and port', async () => {
+  const r = await diagnose(pixel([]), { platform: 'win32', run: fakeRun([]), manager: null });
+  assert.equal(r.facts.mode, 'charge-only');
+  assert.ok(r.plans.some((p) => p.id === 'swap-cable'));
+});
+
 const iphone = (over = {}) =>
   usb({
     vendorId: '05ac',
@@ -188,6 +225,19 @@ test('iPhone on Linux that has not trusted the computer', async () => {
   assert.match(reset.explain, /Reset Location & Privacy/);
 });
 
+test('iPhone on Linux that will not pair: restart usbmuxd after the trust steps', async () => {
+  const run = fakeRun([
+    ['idevice_id -l', '00008030-001A2B3C4D5E802E\n'],
+    ['idevicepair validate', { ok: false, code: 255, stdout: 'ERROR: Invalid HostID -21\n' }],
+  ]);
+  const r = await diagnose(iphone(), { platform: 'linux', run, manager: apt });
+  const restart = r.plans.find((p) => p.id === 'restart-usbmuxd-pairing');
+  assert.ok(restart, 'the restart plan is offered');
+  assert.deepEqual(restart.steps[0], { kind: 'command', title: 'Restart usbmuxd', explain: 'Restarts the iPhone connection service.', cmd: 'systemctl', args: ['restart', 'usbmuxd'], admin: true, safe: true, optional: true });
+  assert.ok(r.plans.findIndex((p) => p.id === 'trust') < r.plans.indexOf(restart), 'the trust steps come first');
+  assertRunnable(r);
+});
+
 test('iPhone on Linux, paired: ready', async () => {
   const run = fakeRun([
     ['idevice_id -l', '00008030-001A2B3C4D5E802E\n'],
@@ -205,6 +255,16 @@ test('iPhone on macOS is native; on Windows with a problem, Apple Devices is off
   assert.equal(win.status, 'broken');
   assert.equal(win.plans[0].steps[0].url, 'https://apps.microsoft.com/detail/9np83lwlpz9k');
   assertRunnable(win);
+});
+
+test('iPhone on Windows that Apple Devices cannot use: offer to start the Apple service', async () => {
+  const d = { ...iphone(), platform: 'win32' };
+  const r = await diagnose(d, { platform: 'win32', run: fakeRun([]), manager: null });
+  const start = r.plans.find((p) => p.id === 'start-apple-service');
+  assert.ok(start, 'the service plan is offered');
+  assert.equal(start.steps[0].cmd, 'powershell.exe');
+  assert.equal(start.steps[0].admin, true);
+  assertRunnable(r);
 });
 
 test('other Apple devices are not phones', () => {
