@@ -176,6 +176,7 @@ function renderDetail() {
         h('h1', {}, 'Plug in a device.'),
         h('p', {}, 'Printers, phones, screens and TVs, headphones, drives, cameras, controllers, dev boards. Plug Doctor works out what it is, checks whether your computer can use it, and fixes it if it can.'),
         state.devices.length ? h('p', { class: 'muted' }, 'Or pick something on the left.') : null,
+        state.devices.length === 0 ? phoneTips() : null,
       ),
     );
     return;
@@ -222,6 +223,23 @@ function renderDetail() {
     if (log && wasAtBottom) log.scrollTop = log.scrollHeight;
     if (hadFocus) $('#chat-input')?.focus();
   }
+}
+
+/** Shown when nothing is connected: a phone that charges but never appears is the most common case. */
+function phoneTips() {
+  return h(
+    'div',
+    { class: 'card note-card' },
+    h('p', { class: 'eyebrow' }, 'Phone charges but does not show up?'),
+    h(
+      'ol',
+      { class: 'steps' },
+      h('li', { class: 'step' }, 'Unlock the phone.'),
+      h('li', { class: 'step' }, 'Use the cable that came with it, plugged straight into a port on the computer, not a hub.'),
+      h('li', { class: 'step' }, 'On an Android phone, tap the USB notification and choose File transfer. On an iPhone or iPad, tap Trust and enter the passcode.'),
+      h('li', { class: 'step' }, 'Still nothing? Try another cable, then restart the phone and the computer.'),
+    ),
+  );
 }
 
 async function recheck(id) {
