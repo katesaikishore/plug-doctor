@@ -64,6 +64,14 @@ Plug Doctor follows your computer's light or dark mode. You can also pick one wi
 
 You don't need any devices to try it. The demo shows a simulated Mac with sixteen devices, including a printer, a phone, a TV, headphones, a webcam, a drive and a game controller.
 
+<p align="center">
+  <a href="docs/media/plug-doctor-dark-demo.mp4">
+    <img src="docs/media/dark-demo-preview.gif" width="760" alt="Plug Doctor in dark mode: a printer is fixed with one click, then a network printer, a phone, a TV, a device it cannot fix and the assistant, and the settings">
+  </a>
+  <br>
+  <a href="docs/media/plug-doctor-dark-demo.mp4"><strong>▶ Watch it in dark mode, start to finish (38 seconds)</strong></a>
+</p>
+
 You need [Node.js](https://nodejs.org) version 22.12 or newer. Then open a terminal and type:
 
 ```sh
