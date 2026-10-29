@@ -539,9 +539,37 @@ async function diagnosePhone(device, ctx) {
     return windowsIos(device, ctx, kind);
   }
   const m = androidModes(device);
-  if (ctx.platform === 'darwin') return macAndroid(device, ctx, m);
-  if (ctx.platform === 'linux') return linuxAndroid(device, ctx, m);
-  return windowsAndroid(device, ctx, m);
+  let result;
+  if (ctx.platform === 'darwin') result = await macAndroid(device, ctx, m);
+  else if (ctx.platform === 'linux') result = await linuxAndroid(device, ctx, m);
+  else result = await windowsAndroid(device, ctx, m);
+  if (m.adb) {
+    const authPlan = await adbAuthPlan(ctx);
+    if (authPlan) result.plans.push(authPlan);
+  }
+  return result;
+}
+
+/**
+ * adb lists a phone as "unauthorized" until the person accepts the USB
+ * debugging prompt on the phone. Plug Doctor only reads the state.
+ */
+async function adbAuthPlan(ctx) {
+  const out = await ctx.run('adb', ['devices']);
+  if (out.missing || !/\bunauthorized\b/.test(out.stdout)) return null;
+  return plan({
+    id: 'accept-adb-prompt',
+    title: 'Accept the USB debugging prompt on the phone',
+    why: 'Developer tools need the phone to trust this computer for USB debugging. The prompt is on the phone itself, so only the person can answer it.',
+    confidence: 0.7,
+    steps: [
+      {
+        kind: 'manual',
+        title: 'Tap Allow on the phone',
+        explain: 'When the phone asks "Allow USB debugging?", tick "Always allow from this computer" and tap Allow. If the prompt does not appear, unplug the phone and plug it back in.',
+      },
+    ],
+  });
 }
 
 /** @type {import('./index').Family} */

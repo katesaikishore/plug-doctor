@@ -173,6 +173,21 @@ test('Samsung on Windows with Code 28 also asks for Allow access to phone data',
   assertRunnable(r);
 });
 
+test('USB debugging waiting for the phone: the person is asked to accept the prompt', async () => {
+  const run = fakeRun([['adb devices', 'List of devices attached\n28031FDH2000AB\tunauthorized\n']]);
+  const r = await diagnose(pixel([MTP, ADB]), { platform: 'linux', run, manager: apt, ...gvfs });
+  const prompt = r.plans.find((p) => p.id === 'accept-adb-prompt');
+  assert.ok(prompt, 'the prompt step is offered');
+  assert.equal(prompt.steps[0].kind, 'manual');
+  assertRunnable(r);
+});
+
+test('USB debugging already allowed: no prompt step', async () => {
+  const run = fakeRun([['adb devices', 'List of devices attached\n28031FDH2000AB\tdevice\n']]);
+  const r = await diagnose(pixel([MTP, ADB]), { platform: 'linux', run, manager: apt, ...gvfs });
+  assert.ok(!r.plans.some((p) => p.id === 'accept-adb-prompt'));
+});
+
 test('Android that only charges on Linux is offered a different cable and port', async () => {
   const r = await diagnose(pixel([]), { platform: 'linux', run: fakeRun([]), manager: apt, ...noGvfs });
   assert.equal(r.facts.mode, 'charge-only');
